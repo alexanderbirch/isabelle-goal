@@ -8,7 +8,7 @@
   We prove a relation between Hoare triples for basic and conditional actions.
 
 *)
-theory Gvf_Hoare_Logic imports Gvf_Actions Gvf_Hoare_Logic_Core begin
+theory Gvf_Hoare_Logic imports Gvf_Actions begin
 
 section \<open>Syntax\<close>
 
