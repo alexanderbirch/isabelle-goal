@@ -1,21 +1,45 @@
 (*
-
   Goal verification framework
     - Hoare Logic
-  
-  This theory sets up the reasoning about programs using Hoare triples.
-  We give the syntax and semantics of Hoare triples, given an agent.
-  We prove a relation between Hoare triples for basic and conditional actions.
-
 *)
+  
+\<comment> \<open>This theory sets up the reasoning about programs using Hoare triples.
+    We give the syntax and semantics of Hoare triples, given an agent.
+    We prove a relation between Hoare triples for basic and conditional actions.\<close>
+
 theory Gvf_Hoare_Logic imports Gvf_Actions begin
 
 section \<open>Syntax\<close>
 
-\<comment> \<open>Hoare triples for basic and conditional actions, respectively\<close>
-datatype hoare_triple = htb (pre: \<Phi>\<^sub>M) (actb: cap) (post: \<Phi>\<^sub>M) | htc (pre: \<Phi>\<^sub>M) (actc: cond_act) (post: \<Phi>\<^sub>M)
+\<comment> \<open>Hoare triples for basic and conditional actions, respectively.\<close>
+datatype hoare_triple = htb (pre: \<Phi>\<^sub>M) cap (post: \<Phi>\<^sub>M) | htc \<Phi>\<^sub>M cond_act \<Phi>\<^sub>M
 
-\<comment> \<open>Introduce the usual notation\<close>
+\<comment> \<open>Is basic Hoare triple?\<close>
+fun is_htb_basic :: \<open>hoare_triple \<Rightarrow> bool\<close> where
+  \<open>is_htb_basic (htb _ (basic _) _) = True\<close> |
+  \<open>is_htb_basic _ = False\<close>
+
+\<comment> \<open>Unpack basic Hoare triple fields into an optional triple.\<close>
+fun htb_basic_unpack :: \<open>hoare_triple \<Rightarrow> (\<Phi>\<^sub>M \<times> Bcap \<times> \<Phi>\<^sub>M) option\<close> where
+  \<open>htb_basic_unpack (htb \<phi> (basic n) \<psi>) = Some (\<phi>, n, \<psi>)\<close> |
+  \<open>htb_basic_unpack _ = None\<close>
+
+\<comment> \<open>Unpacking gives some value if the Hoare triple is for basic actions.\<close>
+lemma htb_unpack_some: \<open>is_htb_basic ht = (\<exists>t. htb_basic_unpack ht = Some t)\<close>
+proof (induct)
+  case (htb \<phi> n \<psi>)
+  then show ?case by (cases n) simp_all 
+qed simp
+
+\<comment> \<open>Link first and third field of the unpacking triple to the selectors defined for the datatype.\<close>
+lemma unpack_sel:
+  assumes \<open>is_htb_basic ht\<close>
+  shows \<open>fst (the (htb_basic_unpack ht)) = pre ht\<close>
+    and \<open>snd (snd (the (htb_basic_unpack ht))) = post ht\<close>
+  using assms htb_basic_unpack.simps(1) is_htb_basic.elims(2) option.sel
+  by (metis fst_conv hoare_triple.sel(1), metis snd_conv hoare_triple.sel(3))
+
+\<comment> \<open>Notation for Hoare triples.\<close>
 syntax
   "_hoare_triple_cond" :: \<open>\<Phi>\<^sub>M \<Rightarrow> \<Phi>\<^sub>M \<Rightarrow> cap \<Rightarrow> \<Phi>\<^sub>M \<Rightarrow> hoare_triple\<close>  ("\<^bold>{_\<^bold>} _ \<triangleright> do _ \<^bold>{_\<^bold>}")
   "_hoare_triple_basic" :: \<open>\<Phi>\<^sub>M \<Rightarrow> cap \<Rightarrow> \<Phi>\<^sub>M \<Rightarrow> hoare_triple\<close>  ("\<^bold>{_\<^bold>} _ \<^bold>{_\<^bold>}")
@@ -23,25 +47,35 @@ translations
   "\<^bold>{ \<phi> \<^bold>} (\<upsilon> \<triangleright> do b) \<^bold>{ \<psi> \<^bold>}" \<rightharpoonup> "hoare_triple.htc \<phi> (\<upsilon>, b) \<psi>"
   "\<^bold>{ \<phi> \<^bold>} a \<^bold>{ \<psi> \<^bold>}" \<rightharpoonup>  "hoare_triple.htb \<phi> a \<psi>"
 
+\<comment> \<open>Start single_agent context block. Proofs, definitions etc. only apply for this context.\<close>
 context single_agent
 begin
 
-\<comment> \<open>Mental state formula evaluated in state\<close>
+\<comment> \<open>Notation for mental state formula evaluated in state.\<close>
+\<comment> \<open>Mental state formulas with enabled.\<close>
 abbreviation mst_in_state\<^sub>E :: \<open>\<Phi>\<^sub>E \<Rightarrow> trace \<Rightarrow> nat \<Rightarrow> bool\<close> (\<open>_\<^bold>[_ _\<^bold>]\<^sub>E\<close>) where
   \<open>\<phi>\<^bold>[s i\<^bold>]\<^sub>E \<equiv> st_nth s i \<Turnstile>\<^sub>E \<phi>\<close>
+\<comment> \<open>Mental state formulas without enabled.\<close>
 abbreviation mst_in_state\<^sub>M :: \<open>\<Phi>\<^sub>M \<Rightarrow> trace \<Rightarrow> nat \<Rightarrow> bool\<close> (\<open>_\<^bold>[_ _\<^bold>]\<^sub>M\<close>) where
   \<open>\<phi>\<^bold>[s i\<^bold>]\<^sub>M \<equiv> st_nth s i \<Turnstile>\<^sub>M \<phi>\<close>
 
 section \<open>Semantics\<close>
 
+\<comment> \<open>Semantics of Hoare triples is not evaluated in a specific state but for the agent.\<close>
 fun semantics\<^sub>H :: \<open>hoare_triple \<Rightarrow> bool\<close> (\<open>\<Turnstile>\<^sub>H\<close>) where
-\<comment> \<open>Basic action\<close>
-  \<open>\<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} a \<^bold>{ \<psi> \<^bold>} = (\<forall>M. (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and>  (enabledb a) \<longrightarrow> the (\<M> a M) \<Turnstile>\<^sub>M \<psi>) \<and> 
-                            (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and> \<^bold>\<not>(enabledb a) \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>))\<close> | 
-\<comment> \<open>Conditional action\<close>
+\<comment> \<open>Basic action. Precondition holds and enabled => evaluate in successor state; else same state.\<close>
+  \<open>\<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} a \<^bold>{ \<psi> \<^bold>} = (\<forall>M. \<nabla>M \<longrightarrow>
+                          (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and>  (enabledb a) \<longrightarrow> the (\<M> a M) \<Turnstile>\<^sub>M \<psi>) \<and> 
+                          (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and> \<^bold>\<not>(enabledb a) \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>))\<close> | 
+\<comment> \<open>Conditional action. If \<upsilon> \<triangleright> do b is conditional action i in the trace and the precondition holds
+    in state i, then the postcondition must hold in state i+1.\<close>
   \<open>\<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} (\<upsilon> \<triangleright> do b) \<^bold>{ \<psi> \<^bold>} = (\<forall> s \<in> Agent. \<forall>i. ((\<phi>\<^bold>[s i\<^bold>]\<^sub>M) \<and> (\<upsilon> \<triangleright> do b) = (act_nth s i) \<longrightarrow> (\<psi>\<^bold>[s (i+1)\<^bold>]\<^sub>M)))\<close>
 
-\<comment> \<open>Lemma 4.3\<close>
+\<comment> \<open>Example.\<close>
+lemma \<open>\<Turnstile>\<^sub>H \<^bold>{ p \<^bold>\<or> \<^bold>\<not> p \<^bold>} a \<^bold>{ p \<^bold>\<or> \<^bold>\<not> p \<^bold>}\<close> by simp
+lemma \<open>\<Turnstile>\<^sub>H \<^bold>{ p \<^bold>\<or> \<^bold>\<not> p \<^bold>} (\<upsilon> \<triangleright> do b) \<^bold>{ p \<^bold>\<or> \<^bold>\<not> p \<^bold>}\<close> by simp
+
+\<comment> \<open>Lemma 4.3: Hoare triple for conditional action from basic action.\<close>
 lemma hoare_triple_cond_from_basic: 
   assumes \<open>\<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>\<and> \<psi> \<^bold>} a \<^bold>{ \<phi>' \<^bold>}\<close> 
       and \<open>\<forall> s \<in> Agent. \<forall>i. st_nth s i \<Turnstile>\<^sub>M (\<phi> \<^bold>\<and> \<^bold>\<not>\<psi>) \<^bold>\<longrightarrow> \<phi>'\<close> 
@@ -68,9 +102,10 @@ proof -
           from \<open>\<phi>\<^bold>[s i\<^bold>]\<^sub>M \<and> ?b = act_nth s i\<close> have \<open>?M \<Turnstile>\<^sub>M \<phi>\<close> by simp
           moreover from \<phi> have \<open>?M \<Turnstile>\<^sub>M \<psi>\<close> by simp
           ultimately have \<open>?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E)\<close> using transfer_semantics\<^sub>M by simp
-          moreover have \<open>(?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E) \<^bold>\<and> (enabledb a) \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>')
-                        \<and> (?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E) \<^bold>\<and> \<^bold>\<not>(enabledb a) \<longrightarrow> ?M \<Turnstile>\<^sub>M \<phi>')\<close>
-            using assms(1) semantics\<^sub>H.simps(1) by blast 
+          moreover have \<open>\<nabla>?M \<longrightarrow> (?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E) \<^bold>\<and> (enabledb a) \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>')
+                                \<and> (?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E) \<^bold>\<and> \<^bold>\<not>(enabledb a) \<longrightarrow> ?M \<Turnstile>\<^sub>M \<phi>')\<close>
+            using assms(1) semantics\<^sub>H.simps(1) by blast  
+          moreover have \<open>\<nabla>?M\<close> using is_mst_trace \<open>s \<in> Agent\<close> .
           ultimately have *: \<open>(?M \<Turnstile>\<^sub>E (enabledb a) \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>')
                         \<and> (?M \<Turnstile>\<^sub>E \<^bold>\<not>(enabledb a) \<longrightarrow> ?M \<Turnstile>\<^sub>M \<phi>')\<close> by simp
           show ?thesis
