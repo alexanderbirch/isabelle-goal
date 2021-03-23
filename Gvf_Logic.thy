@@ -108,7 +108,7 @@ proof -
 qed
 \<comment> \<open>The hassle of manually proving even simple formulas calls for an implementation of proof tactics.
     The deep embedding of the logic means that trivial formulas cannot be proved using Isabelle's
-    vast knowledge about logic formulas, however I am not sure if there is a good  way around this.\<close>
+    vast knowledge about logic formulas, however I am not sure if there is a good way around this.\<close>
 
 section \<open>Soundness\<close>
 

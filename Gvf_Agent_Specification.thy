@@ -363,7 +363,7 @@ proof (induct rule: derive\<^sub>H.induct)
          (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> the (\<M>* \<T> (basic n) M) \<Turnstile>\<^sub>M \<psi>) \<and>
          (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi> \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>)\<close>
     by simp
-  have *:   (* Could be optimized/cleaned I think... *)
+  have *:
     \<open>\<forall>M. (M \<Turnstile>\<^sub>M \<Phi> \<longleftrightarrow> \<T> n M \<noteq> None) \<and>
          (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> the (\<M> ?a M) \<Turnstile>\<^sub>M \<psi>) \<and>
          (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi> \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>)\<close>
@@ -649,11 +649,6 @@ next
   qed
   with transfer_semantics\<^sub>M show ?case by simp
 qed auto
-
-(* Probably won't show this anytime soon... 
-theorem completeness\<^sub>H: \<open>\<Turnstile>\<^sub>H H \<Longrightarrow> \<turnstile>\<^sub>H H\<close>
-  sorry
-*)
 
 end
 end

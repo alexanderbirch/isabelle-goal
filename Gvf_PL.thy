@@ -3,7 +3,7 @@
     - Propositional Logic
 *)  
  \<comment> \<open>This theory is an instance of the general classical logic for atoms that are natural numbers.\<close> 
-
+                            
 theory Gvf_PL imports Gvf_Logic begin
 
 \<comment> \<open>Define the type for propositional logic formulas.\<close>
@@ -28,7 +28,7 @@ abbreviation semantics\<^sub>L :: \<open>(nat \<Rightarrow> bool) \<Rightarrow> 
     a function from natural numbers (proposition identifiers) to truth values.\<close>
 
 \<comment> \<open>The soundness result is easily proved from the general case.\<close>
-lemma soundness\<^sub>L: \<open>\<turnstile>\<^sub>P p \<Longrightarrow> semantics\<^sub>L f p\<close>
+theorem soundness\<^sub>L: \<open>\<turnstile>\<^sub>P p \<Longrightarrow> semantics\<^sub>L f p\<close>
   using soundness\<^sub>P by fastforce
 
 \<comment> \<open>Entailment for propositional logic.\<close>

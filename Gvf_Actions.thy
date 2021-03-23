@@ -354,7 +354,8 @@ inductive provable\<^sub>E :: \<open>\<Phi>\<^sub>E \<Rightarrow> bool\<close> (
 
 section \<open>Soundness\<close>
 
-lemma soundness\<^sub>E:
+\<comment> \<open>The soundness theorem.\<close>
+theorem soundness\<^sub>E:
   assumes \<open>\<nabla> M\<close>
   shows \<open>\<turnstile>\<^sub>E \<phi> \<Longrightarrow> M \<Turnstile>\<^sub>E \<phi>\<close>
 proof (induct rule: provable\<^sub>E.induct)
