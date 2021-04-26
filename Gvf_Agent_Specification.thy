@@ -305,10 +305,10 @@ section \<open>Single agent program given by specification\<close>
 
 locale single_agent_program = single_agent + 
   fixes
-    S :: ht_specification
+    Sp :: ht_specification
   assumes
-    S_valid: \<open>is_ht_specification S\<close> and 
-    \<T>_complies: \<open>complies S \<T>\<close>
+    Sp_valid: \<open>is_ht_specification Sp\<close> and 
+    \<T>_complies: \<open>complies Sp \<T>\<close>
 
 context single_agent_program begin
 
@@ -318,7 +318,7 @@ subsection \<open>Proof System\<close>
 
 inductive derive\<^sub>H :: \<open>hoare_triple \<Rightarrow> bool\<close> (\<open>\<turnstile>\<^sub>H\<close>) where
   \<comment> \<open>Agent specific rule import\<close>
-  import: \<open>(n, \<Phi>, hts) \<in> set S \<Longrightarrow> \<^bold>{ \<phi> \<^bold>} (basic n) \<^bold>{ \<psi> \<^bold>} \<in> set hts \<Longrightarrow> \<turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} (basic n) \<^bold>{ \<psi> \<^bold>}\<close> |
+  import: \<open>(n, \<Phi>, hts) \<in> set Sp \<Longrightarrow> \<^bold>{ \<phi> \<^bold>} (basic n) \<^bold>{ \<psi> \<^bold>} \<in> set hts \<Longrightarrow> \<turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} (basic n) \<^bold>{ \<psi> \<^bold>}\<close> |
   \<comment> \<open>Persistence of goals\<close>
   (*persist: \<open>\<not> is_drop a \<Longrightarrow> \<turnstile>\<^sub>H \<^bold>{ G \<Phi> \<^bold>} a \<^bold>{ (B \<Phi>) \<^bold>\<or> (G \<Phi>) \<^bold>}\<close> |*)
   persist: \<open>\<not> is_drop a \<Longrightarrow> \<turnstile>\<^sub>H \<^bold>{ (G \<Phi>)  \<^bold>} a \<^bold>{ (B \<Phi>) \<^bold>\<or> (G \<Phi>) \<^bold>}\<close> |
@@ -353,7 +353,7 @@ proof (induct rule: derive\<^sub>H.induct)
   case (import n \<Phi> hts \<phi> \<psi>)
   let ?a = \<open>basic n\<close> 
   let ?ht = \<open>\<^bold>{ \<phi> \<^bold>} ?a \<^bold>{ \<psi> \<^bold>}\<close>
-  have \<open>\<forall>s\<in>set S. complies_hts s \<T>\<close> using \<T>_complies unfolding complies_def by simp
+  have \<open>\<forall>s\<in>set Sp. complies_hts s \<T>\<close> using \<T>_complies unfolding complies_def by simp
   with import(1) have \<open>\<forall>ht\<in>set hts. is_htb_basic ht \<and> (\<forall>M. complies_ht M \<T> \<Phi> (the (htb_basic_unpack ht)))\<close> 
     unfolding complies_hts_def by auto
   with bspec have \<open>is_htb_basic ?ht \<and> (\<forall>M. complies_ht M \<T> \<Phi> (the (htb_basic_unpack ?ht)))\<close> 

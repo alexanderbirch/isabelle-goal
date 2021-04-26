@@ -1,2 +1,4 @@
 
 *.thy~
+#Gvf_Temporal_Logic.thy#
+*.thy#

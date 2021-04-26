@@ -26,23 +26,29 @@ fun is_drop :: \<open>cap \<Rightarrow> bool\<close> where
 type_synonym cond_act = \<open>\<Phi>\<^sub>M \<times> cap\<close>
 
 \<comment> \<open>Atoms are extended with enabled for basic/conditional actions.\<close>
-datatype Atoms\<^sub>E = Bl \<Phi>\<^sub>L | Gl \<Phi>\<^sub>L | enabled_basic cap | enabled_cond cond_act
+datatype Atom\<^sub>E = Bl \<Phi>\<^sub>L | Gl \<Phi>\<^sub>L | enabled_basic cap | enabled_cond cond_act
 \<comment> \<open>The simple type theory makes it less delicate to extend types, so we redefine the belief
     and goal operators while adding two new options: one for basic and one for conditional actions.\<close>
 
 \<comment> \<open>The type for mental state formulas concerning enabledness.\<close>
-type_synonym \<Phi>\<^sub>E = \<open>Atoms\<^sub>E \<Phi>\<^sub>P\<close>
+type_synonym \<Phi>\<^sub>E = \<open>Atom\<^sub>E \<Phi>\<^sub>P\<close>
 
 \<comment> \<open>Introducing some notation.\<close>
 syntax
-  "_G" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>G _\<close> 55)
-  "_B" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>B _\<close> 55)
-  "_enabled_basic" :: \<open>Atoms\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabledb _\<close> 55)
-  "_enabled_cond" :: \<open>Atoms\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabled _\<close> 55)
+  "_B\<^sub>E" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>B\<^sub>E _\<close> 55)
+  "_G\<^sub>E" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>G\<^sub>E _\<close> 55)
+  "_enabled_basic\<^sub>E" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabledb\<^sub>E _\<close> 55)
+  "_enabled_cond\<^sub>E" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabled\<^sub>E _\<close> 55)
+  "_enabled_basic" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabledb _\<close> 55)
+  "_enabled_cond" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabled _\<close> 55)
   "_cond_act" :: \<open>\<Phi>\<^sub>M \<Rightarrow> cap \<Rightarrow> \<Phi>\<^sub>M \<times> cap\<close>  (\<open>_ \<triangleright> do _\<close>)
 translations
-  "enabledb c" \<rightharpoonup> "(Gvf_Logic.Atom (Atoms\<^sub>E.enabled_basic c))"
-  "enabled c" \<rightharpoonup> "(Gvf_Logic.Atom (Atoms\<^sub>E.enabled_cond c))"
+  "B\<^sub>E \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.Bl \<Phi>))"
+  "G\<^sub>E \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.Gl \<Phi>))"
+  "enabledb\<^sub>E c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_basic c))"
+  "enabled\<^sub>E c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_cond c))"
+  "enabledb c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_basic c))"
+  "enabled c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_cond c))"
   "\<phi> \<triangleright> do a" \<rightharpoonup> "(\<phi>, a)"
 
 section \<open>Semantics of GOAL\<close>
@@ -309,19 +315,19 @@ qed
 section \<open>Derivability\<close>
 
 \<comment> \<open>Auxiliary function that converts mental state formulas to the type including enabledness.\<close>
-fun to_\<Phi>\<^sub>E :: \<open>\<Phi>\<^sub>M \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>_\<^sup>E\<close>) where
-  \<open>(Atom (Atoms\<^sub>M.Bl \<Phi>))\<^sup>E = Atom (Bl \<Phi>)\<close> |
-  \<open>(Atom (Atoms\<^sub>M.Gl \<Phi>))\<^sup>E = Atom (Gl \<Phi>)\<close> |
+fun to_\<Phi>\<^sub>E :: \<open>\<Phi>\<^sub>M \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>_\<^sup>E\<close> [100]) where
+  \<open>(Atom (Atom\<^sub>M.Bl \<Phi>))\<^sup>E = Atom (Bl \<Phi>)\<close> |
+  \<open>(Atom (Atom\<^sub>M.Gl \<Phi>))\<^sup>E = Atom (Gl \<Phi>)\<close> |
   \<open>(\<^bold>\<not> \<phi>)\<^sup>E = \<^bold>\<not> (\<phi>\<^sup>E)\<close> |
-  \<open>(\<phi>\<^sub>1 \<^bold>\<longrightarrow> \<phi>\<^sub>2)\<^sup>E = (\<phi>\<^sub>1\<^sup>E) \<^bold>\<longrightarrow> (\<phi>\<^sub>2\<^sup>E)\<close> |
-  \<open>(\<phi>\<^sub>1 \<^bold>\<or> \<phi>\<^sub>2)\<^sup>E = (\<phi>\<^sub>1\<^sup>E) \<^bold>\<or> (\<phi>\<^sub>2\<^sup>E)\<close> |
-  \<open>(\<phi>\<^sub>1 \<^bold>\<and> \<phi>\<^sub>2)\<^sup>E = (\<phi>\<^sub>1\<^sup>E) \<^bold>\<and> (\<phi>\<^sub>2\<^sup>E)\<close>
+  \<open>(\<phi>\<^sub>1 \<^bold>\<longrightarrow> \<phi>\<^sub>2)\<^sup>E = \<phi>\<^sub>1\<^sup>E \<^bold>\<longrightarrow> \<phi>\<^sub>2\<^sup>E\<close> |
+  \<open>(\<phi>\<^sub>1 \<^bold>\<or> \<phi>\<^sub>2)\<^sup>E = \<phi>\<^sub>1\<^sup>E \<^bold>\<or> \<phi>\<^sub>2\<^sup>E\<close> |
+  \<open>(\<phi>\<^sub>1 \<^bold>\<and> \<phi>\<^sub>2)\<^sup>E = \<phi>\<^sub>1\<^sup>E \<^bold>\<and> \<phi>\<^sub>2\<^sup>E\<close>
 
 \<comment> \<open>Truth of enabledness (semantics).\<close>
-fun semantics\<^sub>E' :: \<open>mental_state \<Rightarrow> Atoms\<^sub>E \<Rightarrow> bool\<close> where
+fun semantics\<^sub>E' :: \<open>mental_state \<Rightarrow> Atom\<^sub>E \<Rightarrow> bool\<close> where
   \<comment> \<open>Semantics of B and G are the same as for mental state formulas without enabled.\<close>
-  \<open>semantics\<^sub>E' M (Bl \<Phi>) = semantics\<^sub>M' M (Atoms\<^sub>M.Bl \<Phi>)\<close> |
-  \<open>semantics\<^sub>E' M (Gl \<Phi>) = semantics\<^sub>M' M (Atoms\<^sub>M.Gl \<Phi>)\<close> |
+  \<open>semantics\<^sub>E' M (Bl \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Bl \<Phi>)\<close> |
+  \<open>semantics\<^sub>E' M (Gl \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Gl \<Phi>)\<close> |
   \<comment> \<open>a is defined for the action and \<M> a is defined for  M.\<close>
   \<open>semantics\<^sub>E' M (enabled_basic a) = (\<M> a M \<noteq> None)\<close> |
   \<comment> \<open>Conditional action b is enabled if there exists a transition from M to M' using b for some M'.\<close>
@@ -344,11 +350,11 @@ inductive provable\<^sub>E :: \<open>\<Phi>\<^sub>E \<Rightarrow> bool\<close> (
   \<comment> \<open>Derive classical tautologies.\<close>
   R1: \<open>\<turnstile>\<^sub>P \<phi> \<Longrightarrow> \<turnstile>\<^sub>E \<phi>\<close> |
   \<comment> \<open>Properties of beliefs and goals. Imported from proof system for mental state formulas.\<close>
-  R\<^sub>M: \<open>\<turnstile>\<^sub>M \<phi> \<Longrightarrow> \<turnstile>\<^sub>E (\<phi>\<^sup>E)\<close> |
+  R\<^sub>M: \<open>\<turnstile>\<^sub>M \<phi> \<Longrightarrow> \<turnstile>\<^sub>E \<phi>\<^sup>E\<close> |
   \<comment> \<open>Properties of enabled.\<close>
   E1: \<open>\<turnstile>\<^sub>P \<phi> \<Longrightarrow> \<turnstile>\<^sub>E (enabledb a) \<Longrightarrow> (\<phi> \<triangleright> do a) \<in> \<Pi> \<Longrightarrow> \<turnstile>\<^sub>E (enabled (\<phi> \<triangleright> do a))\<close> |
   E2: \<open>\<turnstile>\<^sub>E (enabledb (drop \<Phi>))\<close> |
-  R3: \<open>\<not> \<turnstile>\<^sub>P \<^bold>\<not> \<Phi> \<Longrightarrow> \<turnstile>\<^sub>E (\<^bold>\<not> ((B \<Phi>)\<^sup>E) \<^bold>\<longleftrightarrow> (enabledb (adopt \<Phi>)))\<close> |
+  R3: \<open>\<not> \<turnstile>\<^sub>P \<^bold>\<not> \<Phi> \<Longrightarrow> \<turnstile>\<^sub>E (\<^bold>\<not> (B\<^sub>E \<Phi>) \<^bold>\<longleftrightarrow> (enabledb (adopt \<Phi>)))\<close> |
   R4: \<open>\<turnstile>\<^sub>P (\<^bold>\<not> \<Phi>) \<Longrightarrow> \<turnstile>\<^sub>E (\<^bold>\<not> (enabledb (adopt \<Phi>)))\<close> |
   R5: \<open>\<forall>M. \<T> a M \<noteq> None \<Longrightarrow> \<turnstile>\<^sub>E (enabledb (basic a))\<close>
 
@@ -364,7 +370,7 @@ proof (induct rule: provable\<^sub>E.induct)
 next
   case (R\<^sub>M \<phi>)
   with soundness\<^sub>M have \<open>M \<Turnstile>\<^sub>M \<phi>\<close> using \<open>\<nabla> M\<close> by simp
-  moreover have \<open>M \<Turnstile>\<^sub>M \<phi> = (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E))\<close> 
+  moreover have \<open>M \<Turnstile>\<^sub>M \<phi> = (M \<Turnstile>\<^sub>E \<phi>\<^sup>E)\<close> 
   proof (induct \<phi>)
     case (Atom x)
     then show ?case by (cases x) simp_all
@@ -426,7 +432,7 @@ next
 qed
 
 \<comment> \<open>The semantics of a converted formula is equal to the original.\<close>
-lemma transfer_semantics\<^sub>M: \<open>M \<Turnstile>\<^sub>M \<phi> \<longleftrightarrow> M \<Turnstile>\<^sub>E (\<phi>\<^sup>E)\<close> 
+lemma transfer_semantics\<^sub>M: \<open>M \<Turnstile>\<^sub>M \<phi> \<longleftrightarrow> M \<Turnstile>\<^sub>E \<phi>\<^sup>E\<close> 
 proof (induct \<phi>)
   case (Atom x)
   show ?case by (cases x) simp_all

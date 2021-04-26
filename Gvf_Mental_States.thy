@@ -36,22 +36,22 @@ lemma \<open>\<nabla> (\<Sigma>, \<Gamma>) \<longrightarrow> (\<forall>\<gamma>\
 section \<open>Syntax of mental state formulas\<close>
 
 \<comment> \<open>Atoms are now the special belief and goal modalities.\<close>
-datatype Atoms\<^sub>M = Bl \<Phi>\<^sub>L | Gl \<Phi>\<^sub>L
+datatype Atom\<^sub>M = Bl \<Phi>\<^sub>L | Gl \<Phi>\<^sub>L
 \<comment> \<open>We now use a more complex type for atoms compared to simply natural numbers.
     Bl and Gl are the constructors taking a propositional logic formula as input.
     We will introduce a nicer syntax below that hides the nested constructors.\<close>
 
 \<comment> \<open>We set up a type for mental state formulas.\<close>
-type_synonym \<Phi>\<^sub>M = \<open>Atoms\<^sub>M \<Phi>\<^sub>P\<close>
+type_synonym \<Phi>\<^sub>M = \<open>Atom\<^sub>M \<Phi>\<^sub>P\<close>
 \<comment> \<open>We instantiate the general logic parsing the type for atoms.\<close>
 
 \<comment> \<open>We introduce syntax translations that hide the nesting in the notation.\<close>
 syntax
-  "_G" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>M\<close>  (\<open>G _\<close> 55)
   "_B" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>M\<close>  (\<open>B _\<close> 55)
+  "_G" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>M\<close>  (\<open>G _\<close> 55)
 translations
-  "G \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atoms\<^sub>M.Gl \<Phi>))"
-  "B \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atoms\<^sub>M.Bl \<Phi>))"
+  "B \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>M.Bl \<Phi>))"
+  "G \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>M.Gl \<Phi>))"
 
 \<comment> \<open>Again truth and falsity are defined for this instance of the logic from a simple tautology.\<close>
 abbreviation Truth\<^sub>M :: \<open>\<Phi>\<^sub>M\<close> (\<open>\<top>\<^sub>M\<close>) where 
@@ -62,7 +62,7 @@ abbreviation Falsity\<^sub>L :: \<open>\<Phi>\<^sub>M\<close> (\<open>\<bottom>\
 section \<open>Semantics\<close>
 
 \<comment> \<open>Semantics of atoms for mental state formulas is derived given a mental state.\<close>
-fun semantics\<^sub>M' :: \<open>mental_state \<Rightarrow> Atoms\<^sub>M \<Rightarrow> bool\<close> where
+fun semantics\<^sub>M' :: \<open>mental_state \<Rightarrow> Atom\<^sub>M \<Rightarrow> bool\<close> where
 \<comment> \<open>Does the belief base entail \<Phi>?\<close>
   \<open>semantics\<^sub>M' (\<Sigma>, _) (Bl \<Phi>) = (\<Sigma> \<Turnstile>\<^sub>L \<Phi>)\<close> |
 \<comment> \<open>Is \<Phi> not entailed by the belief base and a (sub)goal?\<close>

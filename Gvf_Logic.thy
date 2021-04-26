@@ -4,7 +4,7 @@
 *)
 
 \<comment> \<open>This theory sets up syntax, semantics and a sequent for classical logic with no quantifiers.
-    The type for atoms is arbitrary to allow reuse in different logic languages to be defined.\<close>
+    The type for an extension is arbitrary to allow reuse in different logic languages to be defined.\<close>
 
 theory Gvf_Logic imports "HOL-Library.Multiset" begin
 
@@ -12,19 +12,19 @@ section \<open>Syntax\<close>
 
 \<comment> \<open>The usual infix operators are in bold to avoid conflict with Isabelle's built-in operators.\<close>
 datatype 'a \<Phi>\<^sub>P = Atom 'a | Negation \<open>'a \<Phi>\<^sub>P\<close> (\<open>\<^bold>\<not>\<close>) | 
-                Implication \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixr \<open>\<^bold>\<longrightarrow>\<close> 60) | 
-                Disjunction \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixl \<open>\<^bold>\<or>\<close> 70) | 
-                Conjunction \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixl \<open>\<^bold>\<and>\<close> 80)
-\<comment> \<open>'a is a type variable for the type of atoms. 
+                 Implication \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixr \<open>\<^bold>\<longrightarrow>\<close> 60) | 
+                 Disjunction \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixl \<open>\<^bold>\<or>\<close> 70) | 
+                 Conjunction \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixl \<open>\<^bold>\<and>\<close> 80)
+\<comment> \<open>'a is a type variable for the type of the extension. 
     An element of this type is parsed to the constructor for Atom.
-    The Boolean operators take one (or two) formula(s) as input (having the same type for atoms).\<close>
+    The Boolean operators take one (or two) formula(s) as input (parsing on the type variable).\<close>
 
 \<comment> \<open>Bi-implication is defined from conjunction and implication.\<close>
 abbreviation Equiv\<^sub>P :: \<open>'a \<Phi>\<^sub>P \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> 'a \<Phi>\<^sub>P\<close> (infix \<open>\<^bold>\<longleftrightarrow>\<close> 60) where
   \<open>P \<^bold>\<longleftrightarrow> Q \<equiv> P \<^bold>\<longrightarrow> Q \<^bold>\<and> Q \<^bold>\<longrightarrow> P\<close>
 
-\<comment> \<open>Example (untyped free variable atoms).\<close>
-value \<open>Atom P \<^bold>\<longrightarrow> (Atom P \<^bold>\<longrightarrow> Atom Q) \<^bold>\<longrightarrow> Atom Q\<close>
+\<comment> \<open>Example.\<close>
+value \<open>P \<^bold>\<longrightarrow> (P \<^bold>\<longrightarrow> Q) \<^bold>\<longrightarrow> Q\<close>
 
 section \<open>Semantics\<close>
 
@@ -35,13 +35,13 @@ primrec semantics\<^sub>P :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a \<P
   \<open>semantics\<^sub>P f (p \<^bold>\<longrightarrow> q) = (semantics\<^sub>P f p \<longrightarrow> semantics\<^sub>P f q)\<close> |
   \<open>semantics\<^sub>P f (p \<^bold>\<or> q) = (semantics\<^sub>P f p \<or> semantics\<^sub>P f q)\<close> |
   \<open>semantics\<^sub>P f (p \<^bold>\<and> q) = (semantics\<^sub>P f p \<and> semantics\<^sub>P f q)\<close>
-\<comment> \<open>The interpretation f is a function from atom (element of type 'a) to Boolean.
-    In the case of an atom the value is looked up and returned.
+\<comment> \<open>The interpretation f is a function from elements of type 'a to Booleans.
+    In the case of Atom the value is looked up and returned.
     In case of a Boolean operator, we can exploit Isabelle's built-in operators.
     This could also be achieved by proper coding of if-then structures.\<close>
 
 \<comment> \<open>Example (holds for any f, P and Q).\<close>
-lemma \<open>semantics\<^sub>P f (Atom P \<^bold>\<longrightarrow> (Atom P \<^bold>\<longrightarrow> Atom Q) \<^bold>\<longrightarrow> Atom Q)\<close> by simp
+lemma \<open>semantics\<^sub>P f (P \<^bold>\<longrightarrow> (P \<^bold>\<longrightarrow> Q) \<^bold>\<longrightarrow> Q)\<close> by simp
 
 \<comment> \<open>Entailment.\<close>
 abbreviation entails :: \<open>'a \<Phi>\<^sub>P set \<Rightarrow> 'a \<Phi>\<^sub>P set \<Rightarrow> bool\<close> (infix \<open>\<Turnstile>\<^sub>P#\<close> 50) where
@@ -49,14 +49,14 @@ abbreviation entails :: \<open>'a \<Phi>\<^sub>P set \<Rightarrow> 'a \<Phi>\<^s
 \<comment> \<open>L entails R if, for all interpretations, all formulas in L true implies at least one in R true.\<close>
 
 \<comment> \<open>Example.\<close>
-lemma \<open>{ Atom P } \<Turnstile>\<^sub>P# { Atom P, Atom Q }\<close> by simp
+lemma \<open>{ P } \<Turnstile>\<^sub>P# { P, Q }\<close> by simp
 
 \<comment> \<open>Entailment for a singleton on rhs.\<close>
 abbreviation entails_singleton :: \<open>'a \<Phi>\<^sub>P set \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> (infix \<open>\<Turnstile>\<^sub>P\<close> 50) where
   \<open>\<Gamma> \<Turnstile>\<^sub>P \<Phi> \<equiv> \<Gamma> \<Turnstile>\<^sub>P# { \<Phi> }\<close>
 
 \<comment> \<open>Example.\<close>
-lemma \<open>{ Atom P \<^bold>\<and> Atom Q } \<Turnstile>\<^sub>P Atom P\<close> by simp
+lemma \<open>{ P \<^bold>\<and> Q } \<Turnstile>\<^sub>P P\<close> by simp
 
 \<comment> \<open>Example.\<close>
 lemma \<open>Q \<noteq> P \<longrightarrow> \<not> { Atom Q } \<Turnstile>\<^sub>P Atom P\<close> by auto
@@ -88,22 +88,22 @@ inductive sequent_calculus :: \<open>'a \<Phi>\<^sub>P multiset \<Rightarrow> 'a
     more complex proofs from existing ones.\<close>
 
 \<comment> \<open>Example.\<close>
-lemma \<open>{# Atom P \<^bold>\<and> Atom Q #} \<turnstile>\<^sub>P# {# Atom P #}\<close> using L_And Axiom by fastforce
+lemma \<open>{# P \<^bold>\<and> Q #} \<turnstile>\<^sub>P# {# P #}\<close> using L_And Axiom by fastforce
 
 \<comment> \<open>Notation for empty lhs and singleton rhs.\<close>
 abbreviation provable :: \<open>'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> (\<open>\<turnstile>\<^sub>P _\<close> 40) where
   \<open>\<turnstile>\<^sub>P p \<equiv> {#} \<turnstile>\<^sub>P# {# p #}\<close>
 
 \<comment> \<open>Example single-step.\<close>
-lemma \<open>\<turnstile>\<^sub>P Atom P \<^bold>\<longrightarrow> (Atom P \<^bold>\<longrightarrow> Atom Q) \<^bold>\<longrightarrow> Atom Q\<close> 
+lemma \<open>\<turnstile>\<^sub>P P \<^bold>\<longrightarrow> (P \<^bold>\<longrightarrow> Q) \<^bold>\<longrightarrow> Q\<close> 
 proof -
-  from R_Imp have \<open>{#} \<turnstile>\<^sub>P# {# Atom P \<^bold>\<longrightarrow> (Atom P \<^bold>\<longrightarrow> Atom Q) \<^bold>\<longrightarrow> Atom Q #}\<close>
-    if \<open>{# Atom P #} \<turnstile>\<^sub>P# {# (Atom P \<^bold>\<longrightarrow> Atom Q) \<^bold>\<longrightarrow> Atom Q #}\<close> using that by simp
+  from R_Imp have \<open>{#} \<turnstile>\<^sub>P# {# P \<^bold>\<longrightarrow> (P \<^bold>\<longrightarrow> Q) \<^bold>\<longrightarrow> Q #}\<close>
+    if \<open>{# P #} \<turnstile>\<^sub>P# {# (P \<^bold>\<longrightarrow> Q) \<^bold>\<longrightarrow> Q #}\<close> using that by simp
   with R_Imp have ?thesis 
-    if \<open>{# Atom P \<^bold>\<longrightarrow> Atom Q, Atom P #} \<turnstile>\<^sub>P# {# Atom Q #}\<close> using that by auto
+    if \<open>{# P \<^bold>\<longrightarrow> Q, P #} \<turnstile>\<^sub>P# {# Q #}\<close> using that by auto
   with L_Imp have ?thesis 
-    if  \<open>{# Atom P #} \<turnstile>\<^sub>P# {# Atom Q #} + {# Atom P #}\<close>
-    and \<open>{# Atom P #} + {# Atom Q #} \<turnstile>\<^sub>P# {# Atom Q #}\<close> using that by auto
+    if  \<open>{# P #} \<turnstile>\<^sub>P# {# Q #} + {# P #}\<close>
+    and \<open>{# P #} + {# Q #} \<turnstile>\<^sub>P# {# Q #}\<close> using that by auto
   with Axiom show ?thesis by auto
 qed
 \<comment> \<open>The hassle of manually proving even simple formulas calls for an implementation of proof tactics.
@@ -123,7 +123,7 @@ section \<open>Collection of semantic rules\<close>
 
 \<comment> \<open>Proofs about the formulas that are not entailed are in general harder, so the idea is to collect
     a number of proofs in a small library as we encounter the need to complete such proofs.\<close>
-lemma neq_atom_not_entail: 
+lemma neq_ext_not_entail: 
   assumes \<open>x \<noteq> y\<close> 
   shows   \<open>\<not> { Atom x } \<Turnstile>\<^sub>P Atom y\<close> 
   using assms by auto
