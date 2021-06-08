@@ -260,7 +260,7 @@ qed
 
 \<comment> \<open>A fair trace ensures that there always is a future point where an actions is scheduled.\<close>
 definition fair_trace :: \<open>trace \<Rightarrow> bool\<close> where
-  \<open>fair_trace s \<equiv> \<forall> b \<in> \<Pi> . \<forall>i . \<exists> j > i. act_nth s j = b\<close>
+  \<open>fair_trace s \<equiv> \<forall> b \<in> \<Pi>. \<forall>i. \<exists> j > i. act_nth s j = b\<close>
 
 \<comment> \<open>An agent is defined as the set of fair traces starting from the initial state.\<close>
 definition Agent :: \<open>trace set\<close> where
