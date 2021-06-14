@@ -250,6 +250,34 @@ qed
 
 subsection \<open>Leads to operator\<close>
 
+fun disL:: \<open>'a \<Phi>\<^sub>T list \<Rightarrow> 'a \<Phi>\<^sub>T\<close> where
+  \<open>disL [] = \<bottom>\<^sub>T\<close> |
+  \<open>disL (\<phi> # \<phi>\<^sub>L) = \<phi> \<or>\<^sub>T disL \<phi>\<^sub>L\<close>
+
+inductive leads_to :: \<open>\<Phi>\<^sub>T\<^sub>E \<Rightarrow> \<Phi>\<^sub>T\<^sub>E \<Rightarrow> bool\<close> (infix \<open>\<mapsto>\<close> 55) where
+  ensures: \<open>\<forall>s i. s, i \<Turnstile>\<^sub>T (\<phi> ensures \<psi>) \<Longrightarrow> \<phi> \<mapsto> \<psi>\<close> |
+  imp: \<open>\<phi> \<mapsto> \<chi> \<Longrightarrow> \<chi> \<mapsto> \<psi> \<Longrightarrow> \<phi> \<mapsto> \<psi>\<close> |
+  disj: \<open>\<forall>\<phi> \<in> set \<phi>\<^sub>L. \<phi> \<mapsto> \<psi> \<Longrightarrow> disL \<phi>\<^sub>L \<mapsto> \<psi>\<close>
+
+\<comment> \<open>Lemma 4.18\<close>
+lemma \<open>\<phi> \<mapsto> \<psi> \<Longrightarrow> s, i \<Turnstile>\<^sub>T (\<phi> \<longrightarrow>\<^sub>T \<diamondop>\<psi>)\<close>
+proof (induct arbitrary: i rule: leads_to.inducts)
+  case (ensures \<phi> \<psi>)
+  then show ?case unfolding ensures_def always_def eventuality_def by simp
+next
+  case (imp \<phi> \<chi> \<psi>)
+  then have \<open>s, i \<Turnstile>\<^sub>T \<phi> \<longrightarrow> s, i \<Turnstile>\<^sub>T (\<diamondop> \<chi>)\<close> by simp
+  moreover have \<open>s, i \<Turnstile>\<^sub>T (\<diamondop> \<chi>) \<longrightarrow> (\<exists>j \<ge> i. s, j \<Turnstile>\<^sub>T \<chi>)\<close> 
+    unfolding eventuality_def always_def by simp
+  then have \<open>s, i \<Turnstile>\<^sub>T (\<diamondop> \<chi>) \<longrightarrow> (\<exists>j \<ge> i. s, j \<Turnstile>\<^sub>T \<psi>)\<close> using imp(4) unfolding eventuality_def always_def
+    using order_trans by fastforce
+  then have \<open>s, i \<Turnstile>\<^sub>T (\<diamondop> \<chi>) \<longrightarrow> s, i \<Turnstile>\<^sub>T (\<diamondop> \<psi>)\<close> by (simp add: eventuality_def always_def)
+  ultimately have \<open>s, i \<Turnstile>\<^sub>T \<phi> \<longrightarrow> s, i \<Turnstile>\<^sub>T (\<diamondop> \<psi>)\<close> by simp
+  then show ?case by simp
+next
+  case (disj \<phi>\<^sub>L \<psi>)
+  then show ?case by (induct \<phi>\<^sub>L) simp_all
+qed
 
 end
 end
