@@ -17,16 +17,11 @@ type_synonym Bcap = nat
 \<comment> \<open>Agent capability is a basic capability, adopt or drop (the latter two are built into GOAL).\<close>
 datatype cap = basic Bcap | adopt (cget: \<Phi>\<^sub>L) | drop (cget: \<Phi>\<^sub>L)
 
-\<comment> \<open>Auxiliary function.\<close>
-fun is_drop :: \<open>cap \<Rightarrow> bool\<close> where
-  \<open>is_drop (drop _) = True\<close> |
-  \<open>is_drop _ = False\<close>
-
 \<comment> \<open>Type for conditional action that is a pair: a condition on the mental state and a basic action.\<close>
 type_synonym cond_act = \<open>\<Phi>\<^sub>M \<times> cap\<close>
 
 \<comment> \<open>Atoms are extended with enabled for basic/conditional actions.\<close>
-datatype Atom\<^sub>E = Bl \<Phi>\<^sub>L | Gl \<Phi>\<^sub>L | enabled_basic cap | enabled_cond cond_act
+datatype Atom\<^sub>E = Bl\<^sub>E \<Phi>\<^sub>L | Gl\<^sub>E \<Phi>\<^sub>L | enabled_basic cap | enabled_cond cond_act
 \<comment> \<open>The simple type theory makes it less delicate to extend types, so we redefine the belief
     and goal operators while adding two new options: one for basic and one for conditional actions.\<close>
 
@@ -34,22 +29,14 @@ datatype Atom\<^sub>E = Bl \<Phi>\<^sub>L | Gl \<Phi>\<^sub>L | enabled_basic ca
 type_synonym \<Phi>\<^sub>E = \<open>Atom\<^sub>E \<Phi>\<^sub>P\<close>
 
 \<comment> \<open>Introducing some notation.\<close>
-syntax
-  "_B\<^sub>E" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>B\<^sub>E _\<close> 55)
-  "_G\<^sub>E" :: \<open>\<Phi>\<^sub>L \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>G\<^sub>E _\<close> 55)
-  "_enabled_basic\<^sub>E" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabledb\<^sub>E _\<close> 55)
-  "_enabled_cond\<^sub>E" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabled\<^sub>E _\<close> 55)
-  "_enabled_basic" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabledb _\<close> 55)
-  "_enabled_cond" :: \<open>Atom\<^sub>E \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>enabled _\<close> 55)
-  "_cond_act" :: \<open>\<Phi>\<^sub>M \<Rightarrow> cap \<Rightarrow> \<Phi>\<^sub>M \<times> cap\<close>  (\<open>_ \<triangleright> do _\<close>)
-translations
-  "B\<^sub>E \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.Bl \<Phi>))"
-  "G\<^sub>E \<Phi>" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.Gl \<Phi>))"
-  "enabledb\<^sub>E c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_basic c))"
-  "enabled\<^sub>E c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_cond c))"
-  "enabledb c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_basic c))"
-  "enabled c" \<rightharpoonup> "(Gvf_Logic.Atom (Atom\<^sub>E.enabled_cond c))"
-  "\<phi> \<triangleright> do a" \<rightharpoonup> "(\<phi>, a)"
+abbreviation \<open>B\<^sub>E \<Phi> \<equiv> Atom (Bl\<^sub>E \<Phi>)\<close>
+abbreviation \<open>G\<^sub>E \<Phi> \<equiv> Atom (Gl\<^sub>E \<Phi>)\<close>
+abbreviation \<open>enabledb\<^sub>E c \<equiv> Atom (enabled_basic c)\<close>
+abbreviation \<open>enabled\<^sub>E c \<equiv> Atom (enabled_cond c)\<close>
+abbreviation \<open>enabledb c \<equiv> Atom (enabled_basic c)\<close>
+abbreviation \<open>enabled c \<equiv> Atom (enabled_cond c)\<close>
+abbreviation cond_act_pair :: \<open>\<Phi>\<^sub>M \<Rightarrow> cap \<Rightarrow> cond_act\<close> (\<open>_ \<triangleright> do _\<close>) where \<open>\<phi> \<triangleright> do a \<equiv> (\<phi>, a)\<close>
+
 
 section \<open>Semantics of GOAL\<close>
 
@@ -62,11 +49,11 @@ type_synonym bel_upd_t = \<open>Bcap \<Rightarrow> mental_state \<Rightarrow> \<
 \<comment> \<open>The mental state transformer gives the agent's mental state update capabilities.\<close>
 fun mental_state_transformer :: \<open>bel_upd_t \<Rightarrow> cap \<Rightarrow> mental_state \<Rightarrow> mental_state option\<close> (\<open>\<M>*\<close>) where
   \<comment> \<open>If \<T> a \<Sigma> is defined, update the goal base accordingly.\<close>
-  \<open>\<M>* \<T> (basic n) (\<Sigma>, \<Gamma>) = (case \<T> n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', \<Gamma> - {\<psi> \<in> \<Gamma>. \<Sigma>' \<Turnstile>\<^sub>L \<psi>}) | _ \<Rightarrow> None)\<close> |
+  \<open>\<M>* \<T> (basic n) (\<Sigma>, \<Gamma>) = (case \<T> n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', \<Gamma> - {\<psi> \<in> \<Gamma>. \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>}) | _ \<Rightarrow> None)\<close> |
   \<comment> \<open>Remove the goals that entail \<Phi>.\<close>
-  \<open>\<M>* \<T> (drop \<Phi>) (\<Sigma>, \<Gamma>) = Some (\<Sigma>, \<Gamma> - {\<psi> \<in> \<Gamma>. {\<psi>} \<Turnstile>\<^sub>L \<Phi>})\<close> |
+  \<open>\<M>* \<T> (drop \<Phi>) (\<Sigma>, \<Gamma>) = Some (\<Sigma>, \<Gamma> - {\<psi> \<in> \<Gamma>. {\<psi>} \<^bold>\<Turnstile>\<^sub>P \<Phi>})\<close> |
   \<comment> \<open>Add the goal \<Phi> if it is consistent and not entailed by the belief base.\<close>
-  \<open>\<M>* \<T> (adopt \<Phi>) (\<Sigma>, \<Gamma>) = (if \<not> {} \<Turnstile>\<^sub>L \<^bold>\<not> \<Phi> \<and> \<not> \<Sigma> \<Turnstile>\<^sub>L \<Phi> then Some (\<Sigma>, \<Gamma> \<union> {\<Phi>}) else None)\<close>
+  \<open>\<M>* \<T> (adopt \<Phi>) (\<Sigma>, \<Gamma>) = (if \<not> \<Turnstile>\<^sub>P (\<^bold>\<not> \<Phi>) \<and> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<Phi> then Some (\<Sigma>, \<Gamma> \<union> {\<Phi>}) else None)\<close>
 
 \<comment> \<open>We fix to a single agent and assume a given belief update function, 
     a set of conditional actions and an initial state.\<close>
@@ -79,7 +66,7 @@ locale single_agent =
     \<comment> \<open>Non-empty set of conditional actions and initial state is a mental state.\<close>
     is_agent: \<open>\<Pi> \<noteq> {} \<and> \<nabla> M\<^sub>0\<close> and
     \<comment> \<open>\<T> preserves consistency.\<close>
-    \<T>_consistent: \<open>(\<exists>\<phi>. (\<phi>, basic a) \<in> \<Pi>) \<longrightarrow> \<not> \<Sigma> \<Turnstile>\<^sub>L \<bottom>\<^sub>L \<longrightarrow> \<T> a (\<Sigma>, \<Gamma>) \<noteq> None \<longrightarrow> \<not> the (\<T> a (\<Sigma>, \<Gamma>)) \<Turnstile>\<^sub>L \<bottom>\<^sub>L\<close> and
+    \<T>_consistent: \<open>(\<exists>\<phi>. (\<phi>, basic a) \<in> \<Pi>) \<longrightarrow> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<T> a (\<Sigma>, \<Gamma>) \<noteq> None \<longrightarrow> \<not> the (\<T> a (\<Sigma>, \<Gamma>)) \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> and
     \<comment> \<open>\<T> only for defined actions.\<close>
     \<T>_in_domain: \<open>\<T> a (\<Sigma>, \<Gamma>) \<noteq> None \<longrightarrow> (\<exists>\<phi>. (\<phi>, basic a) \<in> \<Pi>)\<close>
 
@@ -104,10 +91,10 @@ lemma
   shows \<open>\<M> (basic n) ({P}, {Q}) = Some ({P, Q}, {})\<close>
 using assms by simp
  
-lemma \<open>\<M> (drop \<top>\<^sub>L) ({}, {P, Q}) = Some ({}, {})\<close> by simp
+lemma \<open>\<M> (drop \<^bold>\<top>) ({}, {P, Q}) = Some ({}, {})\<close> by simp
 
 lemma
-  assumes \<open>\<not> {} \<Turnstile>\<^sub>L \<^bold>\<not> Q\<close> and \<open>\<not> {} \<Turnstile>\<^sub>L Q\<close>
+  assumes \<open>\<not> \<Turnstile>\<^sub>P (\<^bold>\<not> Q)\<close> and \<open>\<not> \<Turnstile>\<^sub>P Q\<close>
   shows \<open>\<M> (adopt Q) ({}, {P}) = Some ({}, {P, Q})\<close> 
 proof -
   have \<open>\<M> (adopt Q) ({}, {P}) = Some ({}, {P} \<union> {Q})\<close> using assms by simp
@@ -146,28 +133,28 @@ lemma \<M>_preserves_mst: \<open>\<nabla> (\<Sigma>, \<Gamma>) \<Longrightarrow>
 proof (induct c)
   case basic: (basic a)
   then obtain \<Sigma>' where \<Sigma>': \<open>\<T> a (\<Sigma>, \<Gamma>) = Some \<Sigma>'\<close> by fastforce
-  have \<open>\<nabla> (\<Sigma>', \<Gamma> - {\<psi> \<in> \<Gamma>. \<Sigma>' \<Turnstile>\<^sub>L \<psi>})\<close> (is \<open>\<nabla> (\<Sigma>', ?\<Gamma>')\<close>)
+  have \<open>\<nabla> (\<Sigma>', \<Gamma> - {\<psi> \<in> \<Gamma>. \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>})\<close> (is \<open>\<nabla> (\<Sigma>', ?\<Gamma>')\<close>)
   proof -
-    have \<open>\<not> \<Sigma>' \<Turnstile>\<^sub>L \<bottom>\<^sub>L\<close>
+    have \<open>\<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>
     proof -
-      from basic(1) have \<open>\<not> \<Sigma> \<Turnstile>\<^sub>L \<bottom>\<^sub>L\<close> unfolding is_mental_state_def by simp
+      from basic(1) have \<open>\<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> unfolding is_mental_state_def by simp
       moreover have \<open>\<exists>\<phi>. (\<phi>, basic a) \<in> \<Pi>\<close> using \<M>_some_in_\<Pi> basic.prems(2) by blast
-      ultimately have \<open>\<not> the (\<T> a (\<Sigma>, \<Gamma>)) \<Turnstile>\<^sub>L \<bottom>\<^sub>L\<close> using \<Sigma>' \<T>_consistent basic(2) by blast
+      ultimately have \<open>\<not> the (\<T> a (\<Sigma>, \<Gamma>)) \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> using \<Sigma>' \<T>_consistent basic(2) by blast
       with \<Sigma>' show ?thesis by simp
     qed
-    moreover from basic(1) have \<open>\<forall>\<gamma>\<in>?\<Gamma>'. \<not> \<Sigma> \<Turnstile>\<^sub>L \<gamma> \<and> \<not> {} \<Turnstile>\<^sub>L \<^bold>\<not> \<gamma>\<close> 
+    moreover from basic(1) have \<open>\<forall>\<gamma>\<in>?\<Gamma>'. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<gamma> \<and> \<not> \<Turnstile>\<^sub>P (\<^bold>\<not> \<gamma>)\<close> 
       unfolding is_mental_state_def by simp
     ultimately show ?thesis unfolding is_mental_state_def by simp
   qed
   with \<Sigma>' show ?case by simp 
 next
   case adopt: (adopt \<Phi>)
-  with mental_state_transformer.simps(3) have mst_goal: \<open>\<not> {} \<Turnstile>\<^sub>L \<^bold>\<not> \<Phi> \<and> \<not> \<Sigma> \<Turnstile>\<^sub>L \<Phi>\<close> by metis
+  with mental_state_transformer.simps(3) have mst_goal: \<open>\<not> \<Turnstile>\<^sub>P (\<^bold>\<not> \<Phi>) \<and> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<Phi>\<close> by metis
   with adopt(1) have \<open>\<nabla> (\<Sigma>, \<Gamma> \<union> {\<Phi>})\<close> unfolding is_mental_state_def by simp 
   with mst_goal show ?case by simp
 next
   case (drop \<Phi>)
-  then have \<open>\<nabla> (\<Sigma>, \<Gamma> - {\<psi> \<in> \<Gamma>. {\<psi>} \<Turnstile>\<^sub>L \<Phi>})\<close> unfolding is_mental_state_def by simp
+  then have \<open>\<nabla> (\<Sigma>, \<Gamma> - {\<psi> \<in> \<Gamma>. {\<psi>} \<^bold>\<Turnstile>\<^sub>P \<Phi>})\<close> unfolding is_mental_state_def by simp
   then show ?case by simp
 qed
 
@@ -316,8 +303,9 @@ section \<open>Derivability\<close>
 
 \<comment> \<open>Auxiliary function that converts mental state formulas to the type including enabledness.\<close>
 fun to_\<Phi>\<^sub>E :: \<open>\<Phi>\<^sub>M \<Rightarrow> \<Phi>\<^sub>E\<close> (\<open>_\<^sup>E\<close> [100]) where
-  \<open>(Atom (Atom\<^sub>M.Bl \<Phi>))\<^sup>E = Atom (Bl \<Phi>)\<close> |
-  \<open>(Atom (Atom\<^sub>M.Gl \<Phi>))\<^sup>E = Atom (Gl \<Phi>)\<close> |
+  \<open>(Atom (Bl \<Phi>))\<^sup>E = Atom (Bl\<^sub>E \<Phi>)\<close> |
+  \<open>(Atom (Gl \<Phi>))\<^sup>E = Atom (Gl\<^sub>E \<Phi>)\<close> |
+  \<open>\<^bold>\<bottom>\<^sup>E = \<^bold>\<bottom>\<close> |
   \<open>(\<^bold>\<not> \<phi>)\<^sup>E = \<^bold>\<not> (\<phi>\<^sup>E)\<close> |
   \<open>(\<phi>\<^sub>1 \<^bold>\<longrightarrow> \<phi>\<^sub>2)\<^sup>E = \<phi>\<^sub>1\<^sup>E \<^bold>\<longrightarrow> \<phi>\<^sub>2\<^sup>E\<close> |
   \<open>(\<phi>\<^sub>1 \<^bold>\<or> \<phi>\<^sub>2)\<^sup>E = \<phi>\<^sub>1\<^sup>E \<^bold>\<or> \<phi>\<^sub>2\<^sup>E\<close> |
@@ -326,8 +314,8 @@ fun to_\<Phi>\<^sub>E :: \<open>\<Phi>\<^sub>M \<Rightarrow> \<Phi>\<^sub>E\<clo
 \<comment> \<open>Truth of enabledness (semantics).\<close>
 fun semantics\<^sub>E' :: \<open>mental_state \<Rightarrow> Atom\<^sub>E \<Rightarrow> bool\<close> where
   \<comment> \<open>Semantics of B and G are the same as for mental state formulas without enabled.\<close>
-  \<open>semantics\<^sub>E' M (Bl \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Bl \<Phi>)\<close> |
-  \<open>semantics\<^sub>E' M (Gl \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Gl \<Phi>)\<close> |
+  \<open>semantics\<^sub>E' M (Bl\<^sub>E \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Bl \<Phi>)\<close> |
+  \<open>semantics\<^sub>E' M (Gl\<^sub>E \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Gl \<Phi>)\<close> |
   \<comment> \<open>a is defined for the action and \<M> a is defined for  M.\<close>
   \<open>semantics\<^sub>E' M (enabled_basic a) = (\<M> a M \<noteq> None)\<close> |
   \<comment> \<open>Conditional action b is enabled if there exists a transition from M to M' using b for some M'.\<close>
@@ -348,15 +336,15 @@ qed
 \<comment> \<open>Proof system.\<close>
 inductive provable\<^sub>E :: \<open>\<Phi>\<^sub>E \<Rightarrow> bool\<close> (\<open>\<turnstile>\<^sub>E _\<close> 40) where
   \<comment> \<open>Derive classical tautologies.\<close>
-  R1: \<open>\<turnstile>\<^sub>P \<phi> \<Longrightarrow> \<turnstile>\<^sub>E \<phi>\<close> |
+  R1: \<open>\<Turnstile>\<^sub>P \<phi> \<Longrightarrow> \<turnstile>\<^sub>E \<phi>\<close> |
   \<comment> \<open>Properties of beliefs and goals. Imported from proof system for mental state formulas.\<close>
-  R\<^sub>M: \<open>\<turnstile>\<^sub>M \<phi> \<Longrightarrow> \<turnstile>\<^sub>E \<phi>\<^sup>E\<close> |
+  R\<^sub>M: \<open>\<^bold>\<Turnstile>\<^sub>M \<phi> \<Longrightarrow> \<turnstile>\<^sub>E \<phi>\<^sup>E\<close> |
   \<comment> \<open>Properties of enabled.\<close>
-  E1: \<open>\<turnstile>\<^sub>P \<phi> \<Longrightarrow> \<turnstile>\<^sub>E (enabledb a) \<Longrightarrow> (\<phi> \<triangleright> do a) \<in> \<Pi> \<Longrightarrow> \<turnstile>\<^sub>E (enabled (\<phi> \<triangleright> do a))\<close> |
-  E2: \<open>\<turnstile>\<^sub>E (enabledb (drop \<Phi>))\<close> |
-  R3: \<open>\<not> \<turnstile>\<^sub>P \<^bold>\<not> \<Phi> \<Longrightarrow> \<turnstile>\<^sub>E (\<^bold>\<not> (B\<^sub>E \<Phi>) \<^bold>\<longleftrightarrow> (enabledb (adopt \<Phi>)))\<close> |
-  R4: \<open>\<turnstile>\<^sub>P (\<^bold>\<not> \<Phi>) \<Longrightarrow> \<turnstile>\<^sub>E (\<^bold>\<not> (enabledb (adopt \<Phi>)))\<close> |
-  R5: \<open>\<forall>M. \<T> a M \<noteq> None \<Longrightarrow> \<turnstile>\<^sub>E (enabledb (basic a))\<close>
+  E1: \<open>\<Turnstile>\<^sub>P \<phi> \<Longrightarrow> \<turnstile>\<^sub>E enabledb a \<Longrightarrow> (\<phi> \<triangleright> do a) \<in> \<Pi> \<Longrightarrow> \<turnstile>\<^sub>E enabled (\<phi> \<triangleright> do a)\<close> |
+  E2: \<open>\<turnstile>\<^sub>E enabledb (drop \<Phi>)\<close> |
+  R3: \<open>\<not> \<Turnstile>\<^sub>P (\<^bold>\<not> \<Phi>) \<Longrightarrow> \<turnstile>\<^sub>E \<^bold>\<not> (B\<^sub>E \<Phi>) \<^bold>\<longleftrightarrow> enabledb (adopt \<Phi>)\<close> |
+  R4: \<open>\<Turnstile>\<^sub>P (\<^bold>\<not> \<Phi>) \<Longrightarrow> \<turnstile>\<^sub>E \<^bold>\<not> (enabledb (adopt \<Phi>))\<close> |
+  R5: \<open>\<forall>M. \<T> a M \<noteq> None \<Longrightarrow> \<turnstile>\<^sub>E enabledb (basic a)\<close>
 
 section \<open>Soundness\<close>
 
@@ -366,10 +354,10 @@ theorem soundness\<^sub>E:
   shows \<open>\<turnstile>\<^sub>E \<phi> \<Longrightarrow> M \<Turnstile>\<^sub>E \<phi>\<close>
 proof (induct rule: provable\<^sub>E.induct)
   case (R1 \<phi>)
-  with soundness\<^sub>P show ?case by fastforce
+  then show ?case by fastforce
 next
   case (R\<^sub>M \<phi>)
-  with soundness\<^sub>M have \<open>M \<Turnstile>\<^sub>M \<phi>\<close> using \<open>\<nabla> M\<close> by simp
+  then have \<open>M \<Turnstile>\<^sub>M \<phi>\<close> using \<open>\<nabla> M\<close> by blast
   moreover have \<open>M \<Turnstile>\<^sub>M \<phi> = (M \<Turnstile>\<^sub>E \<phi>\<^sup>E)\<close> 
   proof (induct \<phi>)
     case (Atom x)
@@ -411,7 +399,7 @@ next
   then show ?case by simp
 next
   case (R4 \<Phi>)
-  with soundness\<^sub>L have \<open>\<forall>M. \<M> (adopt \<Phi>) M = None\<close> by fastforce
+  then have \<open>\<forall>M. \<M> (adopt \<Phi>) M = None\<close> by fastforce
   then have \<open>\<M> (adopt \<Phi>) M = None\<close> by blast
   then show ?case by simp
 next

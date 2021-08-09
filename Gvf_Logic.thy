@@ -6,12 +6,12 @@
 \<comment> \<open>This theory sets up syntax, semantics and a sequent for classical logic with no quantifiers.
     The type for an extension is arbitrary to allow reuse in different logic languages to be defined.\<close>
 
-theory Gvf_Logic imports "HOL-Library.Multiset" begin
+theory Gvf_Logic imports "HOL-Library.Multiset"  begin
 
 section \<open>Syntax\<close> 
 
 \<comment> \<open>The usual infix operators are in bold to avoid conflict with Isabelle's built-in operators.\<close>
-datatype 'a \<Phi>\<^sub>P = Atom 'a | Negation \<open>'a \<Phi>\<^sub>P\<close> (\<open>\<^bold>\<not>\<close>) | 
+datatype 'a \<Phi>\<^sub>P = Atom 'a | F (\<open>\<^bold>\<bottom>\<close>) | Negation \<open>'a \<Phi>\<^sub>P\<close> (\<open>\<^bold>\<not>\<close>) | 
                  Implication \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixr \<open>\<^bold>\<longrightarrow>\<close> 60) | 
                  Disjunction \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixl \<open>\<^bold>\<or>\<close> 70) | 
                  Conjunction \<open>'a \<Phi>\<^sub>P\<close> \<open>'a \<Phi>\<^sub>P\<close> (infixl \<open>\<^bold>\<and>\<close> 80)
@@ -23,6 +23,9 @@ datatype 'a \<Phi>\<^sub>P = Atom 'a | Negation \<open>'a \<Phi>\<^sub>P\<close>
 abbreviation Equiv\<^sub>P :: \<open>'a \<Phi>\<^sub>P \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> 'a \<Phi>\<^sub>P\<close> (infix \<open>\<^bold>\<longleftrightarrow>\<close> 60) where
   \<open>P \<^bold>\<longleftrightarrow> Q \<equiv> P \<^bold>\<longrightarrow> Q \<^bold>\<and> Q \<^bold>\<longrightarrow> P\<close>
 
+abbreviation Truth\<^sub>L :: \<open>'a \<Phi>\<^sub>P\<close> (\<open>\<^bold>\<top>\<close>) 
+  where \<open>\<^bold>\<top> \<equiv> \<^bold>\<not> \<^bold>\<bottom>\<close>
+
 \<comment> \<open>Example.\<close>
 value \<open>P \<^bold>\<longrightarrow> (P \<^bold>\<longrightarrow> Q) \<^bold>\<longrightarrow> Q\<close>
 
@@ -31,6 +34,7 @@ section \<open>Semantics\<close>
 \<comment> \<open>The semantics function takes an interpretation and a formula and returns a Boolean.\<close>
 primrec semantics\<^sub>P :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> where
   \<open>semantics\<^sub>P f (Atom x) = f x\<close> |
+  \<open>semantics\<^sub>P f \<^bold>\<bottom> = False\<close> |
   \<open>semantics\<^sub>P f (\<^bold>\<not> p) = (\<not>semantics\<^sub>P f p)\<close> |
   \<open>semantics\<^sub>P f (p \<^bold>\<longrightarrow> q) = (semantics\<^sub>P f p \<longrightarrow> semantics\<^sub>P f q)\<close> |
   \<open>semantics\<^sub>P f (p \<^bold>\<or> q) = (semantics\<^sub>P f p \<or> semantics\<^sub>P f q)\<close> |
@@ -52,14 +56,18 @@ abbreviation entails :: \<open>'a \<Phi>\<^sub>P set \<Rightarrow> 'a \<Phi>\<^s
 lemma \<open>{ P } \<Turnstile>\<^sub>P# { P, Q }\<close> by simp
 
 \<comment> \<open>Entailment for a singleton on rhs.\<close>
-abbreviation entails_singleton :: \<open>'a \<Phi>\<^sub>P set \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> (infix \<open>\<Turnstile>\<^sub>P\<close> 50) where
-  \<open>\<Gamma> \<Turnstile>\<^sub>P \<Phi> \<equiv> \<Gamma> \<Turnstile>\<^sub>P# { \<Phi> }\<close>
+abbreviation entails_singleton :: \<open>'a \<Phi>\<^sub>P set \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> (infix \<open>\<^bold>\<Turnstile>\<^sub>P\<close> 50) where
+  \<open>\<Gamma> \<^bold>\<Turnstile>\<^sub>P \<Phi> \<equiv> (\<forall>f. (\<forall>p\<in>\<Gamma>. semantics\<^sub>P f p) \<longrightarrow> semantics\<^sub>P f \<Phi>)\<close>
+
+
+abbreviation entails_all_singleton :: \<open>'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> (\<open>\<Turnstile>\<^sub>P\<close>) where
+  \<open>\<Turnstile>\<^sub>P \<Phi> \<equiv> (\<forall>f. semantics\<^sub>P f \<Phi>)\<close>
 
 \<comment> \<open>Example.\<close>
-lemma \<open>{ P \<^bold>\<and> Q } \<Turnstile>\<^sub>P P\<close> by simp
+lemma \<open>{ P \<^bold>\<and> Q } \<^bold>\<Turnstile>\<^sub>P P\<close> by simp
 
 \<comment> \<open>Example.\<close>
-lemma \<open>Q \<noteq> P \<longrightarrow> \<not> { Atom Q } \<Turnstile>\<^sub>P Atom P\<close> by auto
+lemma \<open>Q \<noteq> P \<longrightarrow> \<not> { Atom Q } \<^bold>\<Turnstile>\<^sub>P Atom P\<close> by auto
 
 \<comment> \<open>Weakening of assumptions for entailment\<close>
 lemma weakening_entailment: \<open>\<Sigma>' \<subseteq> \<Sigma> \<longrightarrow> \<Sigma>' \<Turnstile>\<^sub>P# \<Gamma> \<longrightarrow> \<Sigma> \<Turnstile>\<^sub>P# \<Gamma>\<close>  by blast
@@ -110,6 +118,15 @@ qed
     The deep embedding of the logic means that trivial formulas cannot be proved using Isabelle's
     vast knowledge about logic formulas, however I am not sure if there is a good way around this.\<close>
 
+section \<open>Misc.\<close>
+
+\<comment> \<open>Proofs about the formulas that are not entailed are in general harder, so the idea is to collect
+    a number of proofs in a small library as we encounter the need to complete such proofs.\<close>
+lemma neq_ext_not_entail: 
+  assumes \<open>x \<noteq> y\<close> 
+  shows   \<open>\<not> { Atom x } \<^bold>\<Turnstile>\<^sub>P Atom y\<close> 
+  using assms by auto
+
 section \<open>Soundness\<close>
 
 \<comment> \<open>The soundness theorem.\<close>
@@ -119,13 +136,10 @@ theorem soundness\<^sub>P: \<open>\<Gamma> \<turnstile>\<^sub>P# \<Delta> \<Long
     of multisets, whereas the semantics is based on regular sets, a conversion is required.
     In general going from multisets to sets is more clean due to the former always being finite.\<close>
 
-section \<open>Collection of semantic rules\<close>
+section \<open>Completeness\<close>
 
-\<comment> \<open>Proofs about the formulas that are not entailed are in general harder, so the idea is to collect
-    a number of proofs in a small library as we encounter the need to complete such proofs.\<close>
-lemma neq_ext_not_entail: 
-  assumes \<open>x \<noteq> y\<close> 
-  shows   \<open>\<not> { Atom x } \<Turnstile>\<^sub>P Atom y\<close> 
-  using assms by auto
+\<comment> \<open>The completeness theorem (missing).\<close>
+theorem completeness\<^sub>P: \<open>set_mset \<Gamma> \<Turnstile>\<^sub>P# set_mset \<Delta> \<Longrightarrow> \<Gamma> \<turnstile>\<^sub>P# \<Delta>\<close> sorry
+
 
 end
