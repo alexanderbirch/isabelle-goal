@@ -12,7 +12,7 @@ theory Gvf_Actions imports Gvf_Mental_States begin
 section \<open>Actions\<close>
 
 \<comment> \<open>The identifier for basic actions is a natural number.\<close>
-type_synonym Bcap = nat
+type_synonym Bcap = string
 
 \<comment> \<open>Agent capability is a basic capability, adopt or drop (the latter two are built into GOAL).\<close>
 datatype cap = basic Bcap | adopt (cget: \<Phi>\<^sub>L) | drop (cget: \<Phi>\<^sub>L)
@@ -314,8 +314,8 @@ fun to_\<Phi>\<^sub>E :: \<open>\<Phi>\<^sub>M \<Rightarrow> \<Phi>\<^sub>E\<clo
 \<comment> \<open>Truth of enabledness (semantics).\<close>
 fun semantics\<^sub>E' :: \<open>mental_state \<Rightarrow> Atom\<^sub>E \<Rightarrow> bool\<close> where
   \<comment> \<open>Semantics of B and G are the same as for mental state formulas without enabled.\<close>
-  \<open>semantics\<^sub>E' M (Bl\<^sub>E \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Bl \<Phi>)\<close> |
-  \<open>semantics\<^sub>E' M (Gl\<^sub>E \<Phi>) = semantics\<^sub>M' M (Atom\<^sub>M.Gl \<Phi>)\<close> |
+  \<open>semantics\<^sub>E' M (Bl\<^sub>E \<Phi>) = (M \<Turnstile>\<^sub>M* Atom\<^sub>M.Bl \<Phi>)\<close> |
+  \<open>semantics\<^sub>E' M (Gl\<^sub>E \<Phi>) = (M \<Turnstile>\<^sub>M* Atom\<^sub>M.Gl \<Phi>)\<close> |
   \<comment> \<open>a is defined for the action and \<M> a is defined for  M.\<close>
   \<open>semantics\<^sub>E' M (enabled_basic a) = (\<M> a M \<noteq> None)\<close> |
   \<comment> \<open>Conditional action b is enabled if there exists a transition from M to M' using b for some M'.\<close>

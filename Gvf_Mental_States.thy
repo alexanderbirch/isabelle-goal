@@ -7,7 +7,7 @@
   The syntax and semantics of mental state formulas is defined.
   A proof system for mental state formulas is proved sound.\<close>
 
-theory Gvf_Mental_States imports Gvf_PL begin
+theory Gvf_Mental_States imports Gvf_Logic begin
                                       
 section \<open>Properties of mental states\<close>
 
@@ -47,11 +47,11 @@ abbreviation \<open>G \<Phi> \<equiv> Atom (Gl \<Phi>)\<close>
 section \<open>Semantics\<close>
 
 \<comment> \<open>Semantics of atoms for mental state formulas is derived given a mental state.\<close>
-fun semantics\<^sub>M' :: \<open>mental_state \<Rightarrow> Atom\<^sub>M \<Rightarrow> bool\<close> where
+fun semantics\<^sub>M' :: \<open>mental_state \<Rightarrow> Atom\<^sub>M \<Rightarrow> bool\<close> (infix \<open>\<Turnstile>\<^sub>M*\<close> 50) where
 \<comment> \<open>Does the belief base entail \<Phi>?\<close>
-  \<open>semantics\<^sub>M' (\<Sigma>, _) (Bl \<Phi>) = (\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<Phi>)\<close> |
+  \<open>(\<Sigma>, _) \<Turnstile>\<^sub>M* Bl \<Phi> = (\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<Phi>)\<close> |
 \<comment> \<open>Is \<Phi> not entailed by the belief base and a (sub)goal?\<close>
-  \<open>semantics\<^sub>M' (\<Sigma>, \<Gamma>) (Gl \<Phi>) = (\<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<Phi> \<and> (\<exists>\<gamma>\<in>\<Gamma>. \<Turnstile>\<^sub>P (\<gamma> \<^bold>\<longrightarrow> \<Phi>)))\<close>
+  \<open>(\<Sigma>, \<Gamma>) \<Turnstile>\<^sub>M* Gl \<Phi> = (\<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<Phi> \<and> (\<exists>\<gamma>\<in>\<Gamma>. \<Turnstile>\<^sub>P (\<gamma> \<^bold>\<longrightarrow> \<Phi>)))\<close>
 
 \<comment> \<open>Semantics of formulas.\<close>
 abbreviation semantics\<^sub>M :: \<open>mental_state \<Rightarrow> \<Phi>\<^sub>M \<Rightarrow> bool\<close> (infix \<open>\<Turnstile>\<^sub>M\<close> 50) where
@@ -61,7 +61,7 @@ abbreviation semantics\<^sub>M :: \<open>mental_state \<Rightarrow> \<Phi>\<^sub
     reuse of the existing definition.\<close>
 
 abbreviation semantics\<^sub>_all\<^sub>M :: \<open>\<Phi>\<^sub>M \<Rightarrow> bool\<close> (\<open>\<^bold>\<Turnstile>\<^sub>M\<close>) where
-  \<open>\<^bold>\<Turnstile>\<^sub>M \<phi> \<equiv> (\<forall>M. semantics\<^sub>P (semantics\<^sub>M' M) \<phi>)\<close>
+  \<open>\<^bold>\<Turnstile>\<^sub>M \<phi> \<equiv> (\<forall>M. M \<Turnstile>\<^sub>M \<phi>)\<close>
 \<comment> \<open>The semantics for atoms, given a mental state, matches the type for an interpretation.
     The curried function is parsed on to the general semantics as an interpretation which allows
     reuse of the existing definition.\<close>
@@ -69,7 +69,7 @@ abbreviation semantics\<^sub>_all\<^sub>M :: \<open>\<Phi>\<^sub>M \<Rightarrow>
 \<comment> \<open>Examples.\<close>
 lemma \<open>({ \<Phi> }, {}) \<Turnstile>\<^sub>M B \<Phi>\<close> by simp
 
-lemma \<open>({ Atom 0 }, { Atom 2 }) \<Turnstile>\<^sub>M G (Atom 1 \<^bold>\<longrightarrow> Atom 2)\<close> (is \<open>({ ?R }, { ?Q }) \<Turnstile>\<^sub>M G (?P \<^bold>\<longrightarrow> ?Q)\<close>)
+lemma \<open>({ Atom ''0'' }, { Atom ''2'' }) \<Turnstile>\<^sub>M G (Atom ''1'' \<^bold>\<longrightarrow> Atom ''2'')\<close> (is \<open>({ ?R }, { ?Q }) \<Turnstile>\<^sub>M G (?P \<^bold>\<longrightarrow> ?Q)\<close>)
 proof -
   have \<open>?R \<noteq> ?Q\<close> by simp
   have \<open>\<not> { ?R } \<^bold>\<Turnstile>\<^sub>P ?P \<^bold>\<longrightarrow> ?Q\<close>
@@ -78,15 +78,12 @@ proof -
     then have \<open>\<forall>f. semantics\<^sub>P f ?R \<longrightarrow> semantics\<^sub>P f (?P \<^bold>\<longrightarrow> ?Q)\<close> by auto
     moreover have \<open>\<exists>f. \<not> (semantics\<^sub>P f ?R \<longrightarrow> semantics\<^sub>P f (?P \<^bold>\<longrightarrow> ?Q))\<close>
     proof
-      let ?f = \<open>(\<lambda>_. True)((0::nat) := True, 1 := True, 2 := False)\<close>
+      let ?f = \<open>(\<lambda>_. True)(''0'' := True, ''1'' := True, ''2'' := False)\<close>
       show \<open>\<not> (semantics\<^sub>P ?f ?R \<longrightarrow> semantics\<^sub>P ?f (?P \<^bold>\<longrightarrow> ?Q))\<close> by simp
     qed
     ultimately show False by auto
   qed
-  then have \<open>\<not> { Atom (0::nat) } \<^bold>\<Turnstile>\<^sub>P (Atom 1 \<^bold>\<longrightarrow> Atom 2)\<close> by simp
-  moreover have \<open>\<Turnstile>\<^sub>P (Atom 2 \<^bold>\<longrightarrow> (Atom 1 \<^bold>\<longrightarrow> Atom 2))\<close> by simp
-  then have \<open>\<exists>\<gamma>\<in>{ Atom 2 }. \<Turnstile>\<^sub>P (\<gamma> \<^bold>\<longrightarrow> (Atom 1 \<^bold>\<longrightarrow> Atom 2))\<close> by simp
-  ultimately show ?thesis by simp
+  then show ?thesis by simp
 qed
 
 section \<open>Various proofs\<close>
@@ -109,7 +106,7 @@ lemma G_properties:
     and \<open>\<not> (\<forall>\<Sigma> \<Gamma> \<Phi> \<psi>. \<nabla> (\<Sigma>, \<Gamma>) \<longrightarrow> (\<Sigma>, \<Gamma>) \<Turnstile>\<^sub>M G \<Phi> \<^bold>\<and> G \<psi> \<^bold>\<longrightarrow> G (\<Phi> \<^bold>\<and> \<psi>))\<close>
     and \<open>\<Turnstile>\<^sub>P (\<Phi> \<^bold>\<longleftrightarrow> \<psi>) \<longrightarrow> \<nabla> (\<Sigma>, \<Gamma>) \<longrightarrow> (\<Sigma>, \<Gamma>) \<Turnstile>\<^sub>M G \<Phi> \<^bold>\<longleftrightarrow> G \<psi>\<close>
 proof -
-  let ?\<Phi> = \<open>Atom (0::nat)\<close> and ?\<psi> = \<open>Atom (1::nat)\<close>
+  let ?\<Phi> = \<open>Atom ''0''\<close> and ?\<psi> = \<open>Atom ''1''\<close>
   show \<open>\<not> (\<forall>\<Sigma> \<Gamma> \<Phi> \<psi>. \<nabla> (\<Sigma>, \<Gamma>) \<longrightarrow> (\<Sigma>, \<Gamma>) \<Turnstile>\<^sub>M G (\<Phi> \<^bold>\<longrightarrow> \<psi>) \<^bold>\<longrightarrow> G \<Phi> \<^bold>\<longrightarrow> G \<psi>)\<close>
   proof 
     assume *: \<open>\<forall>\<Sigma> \<Gamma> \<Phi> \<psi>. \<nabla> (\<Sigma>, \<Gamma>) \<longrightarrow> (\<Sigma>, \<Gamma>) \<Turnstile>\<^sub>M G (\<Phi> \<^bold>\<longrightarrow> \<psi>) \<^bold>\<longrightarrow> G \<Phi> \<^bold>\<longrightarrow> G \<psi>\<close> 
@@ -117,7 +114,8 @@ proof -
     moreover have \<open>\<exists>\<Sigma> \<Gamma> \<Phi> \<psi>. \<nabla> (\<Sigma>, \<Gamma>) \<and> \<not> (\<Sigma>, \<Gamma>) \<Turnstile>\<^sub>M G (\<Phi> \<^bold>\<longrightarrow> \<psi>) \<^bold>\<longrightarrow> G \<Phi> \<^bold>\<longrightarrow> G \<psi>\<close>
     proof -
       let ?\<Sigma> = \<open>{}\<close> and ?\<Gamma> = \<open>{ ?\<Phi> \<^bold>\<longrightarrow> ?\<psi>, ?\<Phi> }\<close>
-      have \<open>\<not> (?\<Sigma>, ?\<Gamma>) \<Turnstile>\<^sub>M G (?\<Phi> \<^bold>\<longrightarrow> ?\<psi>) \<^bold>\<longrightarrow> G ?\<Phi> \<^bold>\<longrightarrow> G ?\<psi>\<close> by auto
+      have \<open>?\<Phi> \<noteq> ?\<psi>\<close> by simp
+      then have \<open>\<not> (?\<Sigma>, ?\<Gamma>) \<Turnstile>\<^sub>M G (?\<Phi> \<^bold>\<longrightarrow> ?\<psi>) \<^bold>\<longrightarrow> G ?\<Phi> \<^bold>\<longrightarrow> G ?\<psi>\<close> by auto
       moreover have \<open>\<nabla> (?\<Sigma>, ?\<Gamma>)\<close> unfolding is_mental_state_def by auto
       ultimately show ?thesis by blast
     qed

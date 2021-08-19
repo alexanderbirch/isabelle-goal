@@ -5,55 +5,55 @@ section \<open>Example BW4T single agent specification.\<close>
 subsection \<open>Agent specification setup\<close>
 
 \<comment> \<open>Propositions.\<close>
-abbreviation \<open>in_dropzone::\<Phi>\<^sub>L \<equiv> \<Phi>\<^sub>P.Atom 0\<close>
-abbreviation \<open>in_r\<^sub>1::\<Phi>\<^sub>L \<equiv> \<Phi>\<^sub>P.Atom 1\<close>
-abbreviation \<open>collect_red::\<Phi>\<^sub>L \<equiv> \<Phi>\<^sub>P.Atom 2\<close>
-abbreviation \<open>holding_b\<^sub>1::\<Phi>\<^sub>L \<equiv> \<Phi>\<^sub>P.Atom 3\<close>
-abbreviation \<open>atBlock_b\<^sub>1::\<Phi>\<^sub>L \<equiv> \<Phi>\<^sub>P.Atom 4\<close>
+abbreviation \<open>in_dropzone \<equiv> \<Phi>\<^sub>P.Atom ''0''\<close>
+abbreviation \<open>in_r\<^sub>1 \<equiv> \<Phi>\<^sub>P.Atom ''1''\<close>
+abbreviation \<open>holding_b\<^sub>1 \<equiv> \<Phi>\<^sub>P.Atom ''2''\<close>
+abbreviation \<open>atBlock_b\<^sub>1 \<equiv> \<Phi>\<^sub>P.Atom ''3''\<close>
+abbreviation \<open>collect_red \<equiv> \<Phi>\<^sub>P.Atom ''4''\<close>
 
 \<comment> \<open>Actions.\<close>
-abbreviation \<open>goTo_dropzone \<equiv> basic 0\<close>
-abbreviation \<open>goTo_r\<^sub>1::cap \<equiv> basic 1\<close>
-abbreviation \<open>goToBlock_b\<^sub>1::cap \<equiv> basic 2\<close>
-abbreviation \<open>pickUp_b\<^sub>1::cap \<equiv> basic 3\<close>
-abbreviation \<open>putDown::cap \<equiv> basic 4\<close>
+abbreviation \<open>goTo_dropzone::cap \<equiv> basic ''0''\<close>
+abbreviation \<open>goTo_r\<^sub>1::cap \<equiv> basic ''1''\<close>
+abbreviation \<open>goToBlock_b\<^sub>1::cap \<equiv> basic ''2''\<close>
+abbreviation \<open>pickUp_b\<^sub>1::cap \<equiv> basic ''3''\<close>
+abbreviation \<open>putDown::cap \<equiv> basic ''4''\<close>
 
 \<comment> \<open>Specification of the program.\<close>
 abbreviation 
   \<open>\<Pi>\<^sub>x \<equiv> [ 
     (B in_r\<^sub>1 \<^bold>\<and> B holding_b\<^sub>1) \<triangleright> do goTo_dropzone,
-    (B (\<^bold>\<not> in_r\<^sub>1) \<^bold>\<and> B (\<^bold>\<not> holding_b\<^sub>1) ) \<triangleright> do goTo_r\<^sub>1,
-    (B in_r\<^sub>1 \<^bold>\<and> B (\<^bold>\<not> holding_b\<^sub>1) \<^bold>\<and> B (\<^bold>\<not> atBlock_b\<^sub>1)) \<triangleright> do goToBlock_b\<^sub>1,
-    (B atBlock_b\<^sub>1 \<^bold>\<and> B (\<^bold>\<not> holding_b\<^sub>1)) \<triangleright> do pickUp_b\<^sub>1,
+    (B in_dropzone \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1)) \<triangleright> do goTo_r\<^sub>1,
+    (B in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>\<and> \<^bold>\<not> (B atBlock_b\<^sub>1)) \<triangleright> do goToBlock_b\<^sub>1,
+    (B atBlock_b\<^sub>1 \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1)) \<triangleright> do pickUp_b\<^sub>1,
     (B holding_b\<^sub>1 \<^bold>\<and> B in_dropzone) \<triangleright> do putDown
   ]\<close>
 
 abbreviation 
-  \<open>M\<^sub>0\<^sub>x \<equiv> ( { in_dropzone, \<^bold>\<not> in_r\<^sub>1, \<^bold>\<not> holding_b\<^sub>1, \<^bold>\<not> atBlock_b\<^sub>1 }, { collect_red } )\<close>
+  \<open>M\<^sub>0\<^sub>x::mental_state \<equiv> ( { in_dropzone, \<^bold>\<not> in_r\<^sub>1, \<^bold>\<not> holding_b\<^sub>1, \<^bold>\<not> atBlock_b\<^sub>1 }, { collect_red } )\<close>
 
 abbreviation 
-  \<open>S\<^sub>x' \<equiv> [
-    (0, fst (\<Pi>\<^sub>x!0), 
+  \<open>S\<^sub>x'::ht_specification \<equiv> [
+    (''0'', fst (\<Pi>\<^sub>x!0), 
       [
-        \<^bold>{ B in_r\<^sub>1 \<^bold>\<and> B (\<^bold>\<not> in_dropzone) \<^bold>\<and> B holding_b\<^sub>1 \<^bold>} goTo_dropzone \<^bold>{ B (\<^bold>\<not> in_r\<^sub>1) \<^bold>\<and> B in_dropzone \<^bold>}
+        \<^bold>{ B in_r\<^sub>1 \<^bold>\<and> B holding_b\<^sub>1 \<^bold>} goTo_dropzone \<^bold>{ B in_dropzone \<^bold>}
       ]),
 
-    (1, fst (\<Pi>\<^sub>x!1), 
+    (''1'', fst (\<Pi>\<^sub>x!1), 
       [
-        \<^bold>{ B (\<^bold>\<not> in_r\<^sub>1) \<^bold>\<and> B in_dropzone \<^bold>\<and> B (\<^bold>\<not> holding_b\<^sub>1) \<^bold>} goTo_r\<^sub>1 \<^bold>{ B in_r\<^sub>1 \<^bold>\<and> B (\<^bold>\<not> in_dropzone) \<^bold>}
+        \<^bold>{ B in_dropzone \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>} goTo_r\<^sub>1 \<^bold>{ B in_r\<^sub>1 \<^bold>}
       ]),
 
-    (2, fst (\<Pi>\<^sub>x!2), 
+    (''2'', fst (\<Pi>\<^sub>x!2), 
       [
-        \<^bold>{ B in_r\<^sub>1 \<^bold>\<and> B (\<^bold>\<not> atBlock_b\<^sub>1) \<^bold>\<and> B (\<^bold>\<not> holding_b\<^sub>1) \<^bold>} goToBlock_b\<^sub>1 \<^bold>{ B atBlock_b\<^sub>1 \<^bold>}
+        \<^bold>{ B in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>\<and> \<^bold>\<not> (B atBlock_b\<^sub>1) \<^bold>} goToBlock_b\<^sub>1 \<^bold>{ B atBlock_b\<^sub>1 \<^bold>}
       ]),
 
-    (3, fst (\<Pi>\<^sub>x!3), 
+    (''3'', fst (\<Pi>\<^sub>x!3), 
       [
-        \<^bold>{ B atBlock_b\<^sub>1 \<^bold>\<and> B (\<^bold>\<not> holding_b\<^sub>1) \<^bold>} pickUp_b\<^sub>1 \<^bold>{ B holding_b\<^sub>1 \<^bold>}
+        \<^bold>{ B atBlock_b\<^sub>1 \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>} pickUp_b\<^sub>1 \<^bold>{ B holding_b\<^sub>1 \<^bold>}
       ]),
 
-    (4, fst (\<Pi>\<^sub>x!4), 
+    (''4'', fst (\<Pi>\<^sub>x!4), 
       [
         \<^bold>{ B in_dropzone \<^bold>\<and> B holding_b\<^sub>1 \<^bold>} putDown \<^bold>{ B collect_red \<^bold>}
       ])
@@ -62,8 +62,8 @@ abbreviation
 
 abbreviation 
   \<open>inv\<^sub>x \<equiv> [
-    B in_dropzone \<^bold>\<longrightarrow> B (\<^bold>\<not> in_r\<^sub>1),
-    B in_r\<^sub>1 \<^bold>\<longrightarrow> B (\<^bold>\<not> in_dropzone)
+    B (in_dropzone \<^bold>\<longrightarrow> \<^bold>\<not> in_r\<^sub>1),
+    B (in_r\<^sub>1 \<^bold>\<longrightarrow> \<^bold>\<not> in_dropzone)
   ]\<close>
 
 abbreviation
@@ -77,33 +77,116 @@ global_interpretation bw4t: single_agent_program \<open>SOME \<T>. complies S\<^
       and leads_to (infix \<open>\<mapsto>\<close> 55) = bw4t.leads_to
 proof -
   let ?\<T> = \<open>SOME \<T>. complies S\<^sub>x \<T>\<close>
-  have \<open>\<nabla> M\<^sub>0\<^sub>x\<close> unfolding is_mental_state_def by fastforce
+  have \<open>\<nabla> M\<^sub>0\<^sub>x\<close>
+  proof -
+    let ?f = \<open>(\<lambda>_. True)(''0'' := True, ''1'' := False, ''2'' := False, ''3'' := False, ''4'' := False)\<close>
+    have \<open>\<forall>p \<in> fst M\<^sub>0\<^sub>x. semantics\<^sub>P ?f p\<close> by simp
+    then have \<open>\<exists>f. \<forall>p \<in> fst M\<^sub>0\<^sub>x. semantics\<^sub>P f p\<close> by blast
+    with not_contradict have \<open>\<not> fst M\<^sub>0\<^sub>x \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by simp
+    moreover have \<open>\<not> semantics\<^sub>P ?f collect_red\<close> by simp
+    with \<open>\<forall>p \<in> fst M\<^sub>0\<^sub>x. semantics\<^sub>P ?f p\<close> have \<open>\<not> fst M\<^sub>0\<^sub>x \<^bold>\<Turnstile>\<^sub>P collect_red\<close> by blast
+    moreover have \<open>\<not> \<Turnstile>\<^sub>P (\<^bold>\<not> collect_red)\<close> by fastforce
+    ultimately show ?thesis using is_mental_state_def by simp
+  qed
   moreover have \<open>satisfiable S\<^sub>x\<close> unfolding satisfiable_def
   proof
     fix M
-    let ?sat = \<open>\<lambda>s \<Sigma>. (M \<Turnstile>\<^sub>M fst (snd s) \<longrightarrow> satisfiable_base M (snd (snd s)) \<Sigma>) \<and> (M \<Turnstile>\<^sub>M \<^bold>\<not> (fst (snd s)) \<longrightarrow> (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht))\<close>
-    \<comment> \<open>0\<close>
-    have \<open>?sat (S\<^sub>x!0) {\<^bold>\<not> in_r\<^sub>1 \<^bold>\<and> in_dropzone}\<close>
-      unfolding satisfiable_base_def using bel_dist_conj by auto
-    then have \<open>satisfiable_elem M (S\<^sub>x!0)\<close> using satisfiable_elem_def by auto
-    \<comment> \<open>1\<close>
-    moreover have \<open>?sat (S\<^sub>x!1) {in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> in_dropzone}\<close>
-      unfolding satisfiable_base_def using bel_dist_conj by auto
-    then have \<open>satisfiable_elem M (S\<^sub>x!1)\<close> using satisfiable_elem_def by auto
-    \<comment> \<open>2\<close>
-    moreover have \<open>?sat (S\<^sub>x!2) {atBlock_b\<^sub>1}\<close>
-      unfolding satisfiable_base_def using bel_dist_conj by auto
-    then have \<open>satisfiable_elem M (S\<^sub>x!2)\<close> using satisfiable_elem_def by auto
-    \<comment> \<open>3\<close>
-    moreover have \<open>?sat (S\<^sub>x!3) {holding_b\<^sub>1}\<close> 
-      unfolding satisfiable_base_def using bel_dist_conj by auto
-    then have \<open>satisfiable_elem M (S\<^sub>x!3)\<close> using satisfiable_elem_def by auto
-    \<comment> \<open>4\<close>
-    moreover have \<open>?sat (S\<^sub>x!4) {collect_red}\<close> 
-      unfolding satisfiable_base_def using bel_dist_conj by auto
-    then have \<open>satisfiable_elem M (S\<^sub>x!4)\<close> using satisfiable_elem_def by auto
-    \<comment> \<open>Combine\<close>
-    ultimately show \<open>\<forall>s\<in>set S\<^sub>x. satisfiable_elem M s\<close> by simp
+    let ?sat = \<open>\<lambda>\<Sigma> s. (M \<Turnstile>\<^sub>M fst (snd s) \<longrightarrow> satisfiable_base M (snd (snd s)) \<Sigma>)\<close>
+    have \<open>\<forall>s\<in>set S\<^sub>x. \<exists>M. ?sat M s\<close> 
+    proof -
+      let ?M\<^sub>0 = \<open>{\<^bold>\<not> in_r\<^sub>1 \<^bold>\<and> in_dropzone}\<close>
+      let ?M\<^sub>2 = \<open>{atBlock_b\<^sub>1 \<^bold>\<and> in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> in_dropzone}\<close>
+      let ?M\<^sub>3 = \<open>{holding_b\<^sub>1 \<^bold>\<and> in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> in_dropzone}\<close>
+      let ?M\<^sub>4 = \<open>{collect_red \<^bold>\<and> \<^bold>\<not> in_r\<^sub>1 \<^bold>\<and> in_dropzone}\<close>
+      \<comment> \<open>0\<close>
+      have \<open>?sat ?M\<^sub>0 (S\<^sub>x!0)\<close>
+      proof
+        assume \<open>M \<Turnstile>\<^sub>M fst (snd (S\<^sub>x ! 0))\<close>
+        show \<open>satisfiable_base M (snd (snd (S\<^sub>x ! 0))) ?M\<^sub>0\<close> unfolding satisfiable_base_def
+        proof
+          show \<open>\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> ?M\<^sub>0 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>
+          proof
+            let ?f = \<open>(\<lambda>_. True)(''1'' := False)\<close>
+            have \<open>\<forall>p \<in> ?M\<^sub>0. semantics\<^sub>P ?f p\<close> by simp
+            then have \<open>\<exists>f. \<forall>p \<in> ?M\<^sub>0. semantics\<^sub>P f p\<close> by blast
+            with not_contradict show \<open>\<not> ?M\<^sub>0 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
+          qed
+          show \<open>\<forall>ht\<in>set (snd (snd (S\<^sub>x ! 0))). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?M\<^sub>0, snd M - {\<psi> \<in> snd M. ?M\<^sub>0 \<^bold>\<Turnstile>\<^sub>P \<psi>}) \<Turnstile>\<^sub>M post ht\<close> by auto
+        qed
+      qed
+      then have \<open>\<exists>M. ?sat M (S\<^sub>x!0)\<close> by auto
+      \<comment> \<open>1\<close>
+      moreover have \<open>?sat {in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> in_dropzone} (S\<^sub>x!1)\<close>
+        unfolding satisfiable_base_def by auto
+      then have \<open>\<exists>M. ?sat M (S\<^sub>x!1)\<close> by auto
+      \<comment> \<open>2\<close>
+      moreover have \<open>?sat ?M\<^sub>2 (S\<^sub>x!2)\<close> 
+      proof
+        assume \<open>M \<Turnstile>\<^sub>M fst (snd (S\<^sub>x ! 2))\<close>
+        show \<open>satisfiable_base M (snd (snd (S\<^sub>x ! 2))) ?M\<^sub>2\<close> unfolding satisfiable_base_def
+        proof
+          show \<open>\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> ?M\<^sub>2 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>
+          proof
+            let ?f = \<open>(\<lambda>_. True)(''0'' := False)\<close>
+            have \<open>\<forall>p \<in> ?M\<^sub>2. semantics\<^sub>P ?f p\<close> by simp
+            then have \<open>\<exists>f. \<forall>p \<in> ?M\<^sub>2. semantics\<^sub>P f p\<close> by blast
+            with not_contradict show \<open>\<not> ?M\<^sub>2 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
+          qed
+          show \<open>\<forall>ht\<in>set (snd (snd (S\<^sub>x ! 2))). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?M\<^sub>2, snd M - {\<psi> \<in> snd M. ?M\<^sub>2 \<^bold>\<Turnstile>\<^sub>P \<psi>}) \<Turnstile>\<^sub>M post ht\<close> by simp
+        qed
+      qed
+      then have \<open>\<exists>M. ?sat M (S\<^sub>x!2)\<close> by auto
+      \<comment> \<open>3\<close>
+      moreover have \<open>?sat ?M\<^sub>3 (S\<^sub>x!3)\<close> 
+      proof
+        assume \<open>M \<Turnstile>\<^sub>M fst (snd (S\<^sub>x ! 3))\<close>
+        show \<open>satisfiable_base M (snd (snd (S\<^sub>x ! 3))) ?M\<^sub>3\<close> unfolding satisfiable_base_def
+        proof
+          show \<open>\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> ?M\<^sub>3 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>
+          proof
+            let ?f = \<open>(\<lambda>_. True)(''0'' := False)\<close>
+            have \<open>\<forall>p \<in> ?M\<^sub>3. semantics\<^sub>P ?f p\<close> by simp
+            then have \<open>\<exists>f. \<forall>p \<in> ?M\<^sub>3. semantics\<^sub>P f p\<close> by blast
+            with not_contradict show \<open>\<not> ?M\<^sub>3 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
+          qed
+          show \<open>\<forall>ht\<in>set (snd (snd (S\<^sub>x ! 3))). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?M\<^sub>3, snd M - {\<psi> \<in> snd M. ?M\<^sub>3 \<^bold>\<Turnstile>\<^sub>P \<psi>}) \<Turnstile>\<^sub>M post ht\<close> by simp
+        qed
+      qed
+      then have \<open>\<exists>M. ?sat M (S\<^sub>x!3)\<close> by auto
+      \<comment> \<open>4\<close>
+      moreover have \<open>?sat ?M\<^sub>4 (S\<^sub>x!4)\<close> 
+      proof
+        assume \<open>M \<Turnstile>\<^sub>M fst (snd (S\<^sub>x ! 4))\<close>
+        show \<open>satisfiable_base M (snd (snd (S\<^sub>x ! 4))) ?M\<^sub>4\<close> unfolding satisfiable_base_def
+        proof
+          show \<open>\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> ?M\<^sub>4 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>
+          proof
+            let ?f = \<open>(\<lambda>_. True)(''1'' := False)\<close>
+            have \<open>\<forall>p \<in> ?M\<^sub>4. semantics\<^sub>P ?f p\<close> by simp
+            then have \<open>\<exists>f. \<forall>p \<in> ?M\<^sub>4. semantics\<^sub>P f p\<close> by blast
+            with not_contradict show \<open>\<not> ?M\<^sub>4 \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
+          qed
+          show \<open>\<forall>ht\<in>set (snd (snd (S\<^sub>x ! 4))). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?M\<^sub>4, snd M - {\<psi> \<in> snd M. ?M\<^sub>4 \<^bold>\<Turnstile>\<^sub>P \<psi>}) \<Turnstile>\<^sub>M post ht\<close> by simp
+        qed
+      qed
+      then have \<open>\<exists>M. ?sat M (S\<^sub>x!4)\<close> by auto
+      \<comment> \<open>Combine\<close>
+      ultimately show ?thesis by simp
+    qed
+    then have \<open>\<forall>s\<in>set S\<^sub>x. satisfiable_l M s\<close> by simp
+    moreover have \<open>\<forall>s\<in>set S\<^sub>x'. satisfiable_r M s\<close>
+    proof 
+      fix s
+      assume \<open>s \<in> set S\<^sub>x'\<close>
+      then have \<open>s = S\<^sub>x'!0 \<or> s = S\<^sub>x'!1 \<or> s = S\<^sub>x'!2 \<or> s = S\<^sub>x'!3 \<or> s = S\<^sub>x'!4\<close> by simp
+      moreover have \<open>satisfiable_r M (S\<^sub>x'!0)\<close> by auto
+      moreover have \<open>satisfiable_r M (S\<^sub>x'!1)\<close> by auto
+      moreover have \<open>satisfiable_r M (S\<^sub>x'!2)\<close> by auto
+      moreover have \<open>satisfiable_r M (S\<^sub>x'!3)\<close> by auto
+      moreover have \<open>satisfiable_r M (S\<^sub>x'!4)\<close> by auto
+      ultimately show \<open>satisfiable_r M s\<close> by blast
+    qed
+    ultimately show \<open>\<forall>s\<in>set S\<^sub>x. satisfiable_l M s \<and> satisfiable_r M s\<close> using satisfiable_r_invariants by blast
   qed
   then have \<open>is_ht_specification S\<^sub>x\<close> unfolding is_ht_specification_def by simp
   moreover have \<open>\<forall>a. (\<exists>\<phi>. (\<phi>, basic a) \<in> set \<Pi>\<^sub>x) = (a \<in> set (map fst S\<^sub>x))\<close> by fastforce
@@ -112,12 +195,12 @@ qed
 
 subsection \<open>Correctness proof\<close>
 
-abbreviation \<open>M\<^sub>0 \<equiv> B in_dropzone \<^bold>\<and> G collect_red\<close>
-abbreviation \<open>M\<^sub>1 \<equiv> B in_r\<^sub>1 \<^bold>\<and> G collect_red\<close>
+abbreviation \<open>M\<^sub>0 \<equiv> B in_dropzone \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>\<and> G collect_red\<close>
+abbreviation \<open>M\<^sub>1 \<equiv> B in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>\<and> G collect_red\<close>
 abbreviation \<open>M\<^sub>2 \<equiv> B in_r\<^sub>1 \<^bold>\<and> B atBlock_b\<^sub>1 \<^bold>\<and> G collect_red\<close>
 abbreviation \<open>M\<^sub>3 \<equiv> B in_r\<^sub>1 \<^bold>\<and> B holding_b\<^sub>1 \<^bold>\<and> G collect_red\<close>
 abbreviation \<open>M\<^sub>4 \<equiv> B in_dropzone \<^bold>\<and> B holding_b\<^sub>1 \<^bold>\<and> G collect_red\<close>
-abbreviation \<open>M\<^sub>5 \<equiv> B collect_red\<close>
+abbreviation \<open>M\<^sub>5 \<equiv> B collect_red\<close>  
 
 lemma bw4t_lt: \<open>M\<^sub>0\<^sup>T \<mapsto> M\<^sub>5\<^sup>T\<close>
 proof -
@@ -126,15 +209,17 @@ proof -
     have \<open>\<forall>b \<in> set \<Pi>\<^sub>x. \<Turnstile>\<^sub>H \<^bold>{ M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>} ((fst b) \<triangleright> do (snd b)) \<^bold>{ M\<^sub>0 \<^bold>\<or> M\<^sub>1 \<^bold>}\<close> sorry
     moreover have \<open>\<exists>b \<in> set \<Pi>\<^sub>x. \<Turnstile>\<^sub>H \<^bold>{ M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>} ((fst b) \<triangleright> do (snd b)) \<^bold>{ M\<^sub>1 \<^bold>}\<close>
     proof -
-      let ?b = \<open>\<Pi>\<^sub>x!0\<close>
+      let ?b = \<open>\<Pi>\<^sub>x!1\<close>
       have \<open>\<turnstile>\<^sub>H \<^bold>{ M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>} ((fst ?b) \<triangleright> do (snd ?b)) \<^bold>{ M\<^sub>1 \<^bold>}\<close>
       proof 
-        show \<open>\<turnstile>\<^sub>H \<^bold>{ M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>\<and> fst ?b \<^bold>} (snd ?b) \<^bold>{ M\<^sub>1 \<^bold>}\<close> sorry
-        show \<open>\<turnstile>\<^sub>M M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>\<and> \<^bold>\<not> (fst ?b) \<^bold>\<longrightarrow> M\<^sub>1\<close> 
-        proof 
-          have \<open>\<Turnstile>\<^sub>P (M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>\<and> \<^bold>\<not> (fst ?b) \<^bold>\<longrightarrow> M\<^sub>1)\<close> try
-          show \<open>\<turnstile>\<^sub>P M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>\<and> \<^bold>\<not> (fst ?b) \<^bold>\<longrightarrow> M\<^sub>1\<close> sorry
-        qed
+        show \<open>\<turnstile>\<^sub>H \<^bold>{ M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>\<and> fst ?b \<^bold>} snd ?b \<^bold>{ M\<^sub>1 \<^bold>}\<close>
+        proof (rule bw4t.rImp)
+          show \<open>\<turnstile>\<^sub>H \<^bold>{ M\<^sub>0 \<^bold>} snd (\<Pi>\<^sub>x ! 1) \<^bold>{ M\<^sub>1 \<^bold>}\<close>
+          proof (rule bw4t.rCon)
+            show \<open>\<turnstile>\<^sub>H \<^bold>{ B in_dropzone \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>} snd (\<Pi>\<^sub>x ! 1) \<^bold>{ B in_r\<^sub>1 \<^bold>\<and> \<^bold>\<not> (B holding_b\<^sub>1) \<^bold>}\<close> sorry
+          qed simp
+        qed (rule R1, auto)+
+        from R1 show \<open>\<turnstile>\<^sub>M M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>\<and> \<^bold>\<not> (fst ?b) \<^bold>\<longrightarrow> M\<^sub>1\<close> by force
       qed
       then have \<open>\<Turnstile>\<^sub>H \<^bold>{ M\<^sub>0 \<^bold>\<and> \<^bold>\<not> M\<^sub>1 \<^bold>} ((fst ?b) \<triangleright> do (snd ?b)) \<^bold>{ M\<^sub>1 \<^bold>}\<close> using bw4t.soundness\<^sub>H by blast
       then show ?thesis by auto

@@ -19,6 +19,9 @@ datatype 'a \<Phi>\<^sub>P = Atom 'a | F (\<open>\<^bold>\<bottom>\<close>) | Ne
     An element of this type is parsed to the constructor for Atom.
     The Boolean operators take one (or two) formula(s) as input (parsing on the type variable).\<close>
 
+\<comment> \<open>Define a type for propositional logic formulas using string symbols.\<close>
+type_synonym \<Phi>\<^sub>L = \<open>string \<Phi>\<^sub>P\<close>
+
 \<comment> \<open>Bi-implication is defined from conjunction and implication.\<close>
 abbreviation Equiv\<^sub>P :: \<open>'a \<Phi>\<^sub>P \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> 'a \<Phi>\<^sub>P\<close> (infix \<open>\<^bold>\<longleftrightarrow>\<close> 60) where
   \<open>P \<^bold>\<longleftrightarrow> Q \<equiv> P \<^bold>\<longrightarrow> Q \<^bold>\<and> Q \<^bold>\<longrightarrow> P\<close>
@@ -59,9 +62,11 @@ lemma \<open>{ P } \<Turnstile>\<^sub>P# { P, Q }\<close> by simp
 abbreviation entails_singleton :: \<open>'a \<Phi>\<^sub>P set \<Rightarrow> 'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> (infix \<open>\<^bold>\<Turnstile>\<^sub>P\<close> 50) where
   \<open>\<Gamma> \<^bold>\<Turnstile>\<^sub>P \<Phi> \<equiv> (\<forall>f. (\<forall>p\<in>\<Gamma>. semantics\<^sub>P f p) \<longrightarrow> semantics\<^sub>P f \<Phi>)\<close>
 
-
 abbreviation entails_all_singleton :: \<open>'a \<Phi>\<^sub>P \<Rightarrow> bool\<close> (\<open>\<Turnstile>\<^sub>P\<close>) where
   \<open>\<Turnstile>\<^sub>P \<Phi> \<equiv> (\<forall>f. semantics\<^sub>P f \<Phi>)\<close>
+
+\<comment> \<open>Not derive contradiction\<close>
+lemma not_contradict: \<open>\<exists>f. \<forall>p\<in>P. semantics\<^sub>P f p \<Longrightarrow> \<not> P \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by simp
 
 \<comment> \<open>Example.\<close>
 lemma \<open>{ P \<^bold>\<and> Q } \<^bold>\<Turnstile>\<^sub>P P\<close> by simp

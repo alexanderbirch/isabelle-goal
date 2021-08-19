@@ -14,13 +14,15 @@ type_synonym ht_specification = \<open>(Bcap \<times> \<Phi>\<^sub>M \<times> ho
 \<comment> \<open>Set of pairs of mental state formula (enabled) and set of Hoare triple axioms.\<close>
 
 \<comment> \<open>Specify and insert invariants into a specification.\<close>
-fun add_invariant :: \<open>\<Phi>\<^sub>M \<Rightarrow> ht_specification \<Rightarrow> ht_specification\<close> where
-  \<open>add_invariant h [] = []\<close> |
-  \<open>add_invariant h ((a, \<Phi>, hts) # S') = (a, \<Phi>, \<^bold>{ h \<^bold>} (basic a) \<^bold>{ h \<^bold>} # hts) # add_invariant h S'\<close>
+fun mk_invariant :: \<open>Bcap \<Rightarrow> \<Phi>\<^sub>M list \<Rightarrow> hoare_triple list\<close> where
+  \<open>mk_invariant _ [] = []\<close> |
+  \<open>mk_invariant a (l # L) = \<^bold>{ l \<^bold>} (basic a) \<^bold>{ l \<^bold>} # mk_invariant a L\<close>
+
+lemma mk_invariant_pre_post: \<open>s \<in> set (mk_invariant a L) \<Longrightarrow> pre s = post s\<close>
+  by (induct L) auto
 
 fun add_invariants :: \<open>ht_specification \<Rightarrow> \<Phi>\<^sub>M list \<Rightarrow> ht_specification\<close> where
-  \<open>add_invariants S [] = S\<close> |
-  \<open>add_invariants S (h # t) = add_invariants (add_invariant h S) t\<close>
+  \<open>add_invariants S L = map (\<lambda>(a, \<Phi>, hts). (a, \<Phi>, mk_invariant a L @ hts)) S\<close>
 
 section \<open>Satisfiability of specification\<close>
 
@@ -34,13 +36,57 @@ definition satisfiable_base :: \<open>mental_state \<Rightarrow> hoare_triple li
     (\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>) \<and> 
     (\<forall>ht \<in> set hts. M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, snd M - {\<psi> \<in> snd M. \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>} ) \<Turnstile>\<^sub>M post ht)\<close>
 
-definition satisfiable_elem :: \<open>mental_state \<Rightarrow> (Bcap \<times> \<Phi>\<^sub>M \<times> hoare_triple list) \<Rightarrow> bool\<close> where
- \<open>satisfiable_elem M s \<equiv> 
-    (M \<Turnstile>\<^sub>M fst (snd s) \<longrightarrow> (\<exists> \<Sigma>. satisfiable_base M (snd (snd s)) \<Sigma>)) \<and> 
-    (M \<Turnstile>\<^sub>M \<^bold>\<not> (fst (snd s)) \<longrightarrow> (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht))\<close>
+fun satisfiable_l :: \<open>mental_state \<Rightarrow> (Bcap \<times> \<Phi>\<^sub>M \<times> hoare_triple list) \<Rightarrow> bool\<close> where
+ \<open>satisfiable_l M (a, \<Phi>, hts) = (M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<exists> \<Sigma>. satisfiable_base M hts \<Sigma>))\<close>
+
+fun satisfiable_r :: \<open>mental_state \<Rightarrow> (Bcap \<times> \<Phi>\<^sub>M \<times> hoare_triple list) \<Rightarrow> bool\<close> where
+ \<open>satisfiable_r M (a, \<Phi>, hts) =
+    (M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi> \<longrightarrow> (\<forall>ht \<in> set hts. M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht))\<close>
 
 definition satisfiable :: \<open>ht_specification \<Rightarrow> bool\<close> where
-  \<open>satisfiable S \<equiv>  \<forall>M. \<forall>s \<in> set S. satisfiable_elem M s\<close>
+  \<open>satisfiable S \<equiv>  \<forall>M. \<forall>s \<in> set S. satisfiable_l M s \<and> satisfiable_r M s\<close>
+
+lemma satisfiable_r_invariants: 
+  \<open>\<forall>s \<in> set S. satisfiable_r M s \<Longrightarrow> \<forall>s \<in> set (add_invariants S L). satisfiable_r M s\<close>
+proof (induct S)
+  case (Cons b S)
+  then have 
+    \<open>\<forall>s\<in>set S. satisfiable_r M s\<close> 
+    \<open>\<forall>s\<in>set (add_invariants S L). satisfiable_r M s\<close> 
+    by simp_all
+  moreover have \<open>\<forall>s \<in> set (add_invariants [b] L). satisfiable_r M s\<close>
+  proof (cases b)
+    case (fields a \<Phi> hts)
+    have \<open>\<forall>s \<in> set (add_invariants [(a, \<Phi>, hts)] L). satisfiable_r M s\<close> 
+    proof 
+        fix s
+        assume \<open>s \<in> set (add_invariants [(a, \<Phi>, hts)] L)\<close>
+        then have st: \<open>s = (a, \<Phi>, mk_invariant a L @ hts)\<close> (is \<open>s = (a, \<Phi>, ?hts)\<close>) by simp
+        show \<open>satisfiable_r M s\<close>
+        proof -
+          have \<open>M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi> \<longrightarrow> (\<forall>ht \<in> set ?hts. M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht)\<close> 
+          proof
+            assume \<open>M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi>\<close>
+            show \<open>\<forall>ht\<in>set ?hts. M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht\<close>
+            proof
+              fix ht
+              assume \<open>ht \<in> set ?hts\<close>
+              show \<open>M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht\<close>
+              proof (cases \<open>ht \<in> set (mk_invariant a L)\<close>)
+                case False
+                with \<open>ht \<in> set ?hts\<close> have \<open>ht \<in> set hts\<close> by simp
+                with fields have \<open>(a, \<Phi>, hts) = b\<close> by simp
+                with \<open>M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi>\<close> \<open>ht \<in> set hts\<close> show ?thesis using Cons fields by simp
+              qed (simp add: mk_invariant_pre_post)
+            qed
+          qed
+          with st show \<open>satisfiable_r M s\<close> by simp
+        qed
+      qed
+    with fields show ?thesis by simp
+  qed
+  with Cons show ?case by simp
+qed simp
 
 \<comment> \<open>We restrict those elements of the type 'ht_specification' that are valid specifications.\<close>
 \<comment> \<open>Hoare triples only for basic actions and should be for grouped for actions.\<close>
@@ -192,24 +238,9 @@ proof -
                 proof (cases \<open>M \<Turnstile>\<^sub>M \<Phi>\<close>)
                   case True
                   then have nM: \<open>?\<T> n M = Some (SOME \<Sigma>. satisfiable_base M hts \<Sigma>)\<close> by simp
-                  moreover from sat have 
-                    \<open>\<forall>s \<in> set S. 
-                        ((M \<Turnstile>\<^sub>M (fst (snd s)) \<longrightarrow> 
-                          (\<exists> \<Sigma>. 
-                            (\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>) \<and> 
-                            (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, snd M - {\<psi> \<in> snd M. \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>}) \<Turnstile>\<^sub>M post ht))) \<and>
-                            (M \<Turnstile>\<^sub>M \<^bold>\<not> (fst (snd s)) \<longrightarrow> (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht)))\<close>
-                    unfolding satisfiable_def satisfiable_elem_def satisfiable_base_def by blast
-                  with \<open>s \<in> set S\<close> have 
-                    \<open>((M \<Turnstile>\<^sub>M (fst (snd s)) \<longrightarrow> 
-                        (\<exists> \<Sigma>. 
-                          (\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>) \<and> 
-                          (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, snd M - {\<psi> \<in> snd M. \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>}) \<Turnstile>\<^sub>M post ht))) \<and>
-                          (M \<Turnstile>\<^sub>M \<^bold>\<not> (fst (snd s)) \<longrightarrow> (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht)))\<close>
-                    by simp
-                  with f1 True have ex:
-                    \<open>\<exists>\<Sigma>. satisfiable_base M hts \<Sigma>\<close>
-                    unfolding satisfiable_base_def by simp
+                  moreover from sat have \<open>satisfiable_l M s \<and> satisfiable_r M s\<close> 
+                    unfolding satisfiable_def using \<open>s \<in> set S\<close> by blast
+                  with f1 True have ex: \<open>\<exists>\<Sigma>. satisfiable_base M hts \<Sigma>\<close> by simp
                   have \<open>\<forall>\<Sigma>. satisfiable_base M hts \<Sigma> \<longrightarrow> \<not> (fst M) \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> ?\<T> n M \<noteq> None \<longrightarrow> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>
                   proof
                     fix \<Sigma>
@@ -266,19 +297,9 @@ proof -
                   then have \<open>?\<T> n M = None\<close> by simp 
                   then have \<open>M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi> \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>\<close> 
                   proof -
-                    from sat have 
-                      \<open>\<forall>s \<in> set S.                         
-                        ((M \<Turnstile>\<^sub>M (fst (snd s)) \<longrightarrow> 
-                          (\<exists> \<Sigma>. 
-                            (\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>) \<and> 
-                            (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, snd M - {\<psi> \<in> snd M. \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>}) \<Turnstile>\<^sub>M post ht))) \<and>
-                            (M \<Turnstile>\<^sub>M \<^bold>\<not> (fst (snd s)) \<longrightarrow> (\<forall>ht \<in> set (snd (snd s)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht)))\<close>
-                      using \<open>s \<in> set S\<close> f1 
-                      unfolding satisfiable_def satisfiable_elem_def satisfiable_base_def 
-                      by blast
-                    with \<open>s \<in> set S\<close> False have 
+                    from sat \<open>s \<in> set S\<close> False have 
                       \<open>\<forall>ht \<in> set hts. M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht\<close> 
-                      using \<open>s \<in> set S\<close> f1 unfolding satisfiable_def by auto
+                      using f1 unfolding satisfiable_def by fastforce
                     with \<open>ht \<in> set hts\<close> have \<open>M \<Turnstile>\<^sub>M pre ht \<longrightarrow> M \<Turnstile>\<^sub>M post ht\<close> by simp
                     moreover from \<open>is_htb_basic ht\<close> have \<open>pre ht = \<phi>\<close> 
                       using fields unpack_sel(1) by fastforce
