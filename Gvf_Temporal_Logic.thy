@@ -245,7 +245,7 @@ proof
             using sem\<^sub>T\<^sub>M_equiv2 transfer_semantics\<^sub>M by simp
           ultimately have \<open>\<exists>j > i. (\<psi>\<^bold>[s (j+1)\<^bold>]\<^sub>M)\<close> by auto
         }
-      ultimately show False using sem\<^sub>T\<^sub>M_equiv2 transfer_semantics\<^sub>M by auto
+        ultimately show False using sem\<^sub>T\<^sub>M_equiv2 transfer_semantics\<^sub>M by auto
       qed
     qed
     ultimately show \<open>s, i \<Turnstile>\<^sub>T (?\<phi> ensures ?\<psi>)\<close> by (simp add: ensures_def)
@@ -256,6 +256,7 @@ subsection \<open>Leads to operator\<close>
 
 fun disL:: \<open>'a \<Phi>\<^sub>T list \<Rightarrow> 'a \<Phi>\<^sub>T\<close> where
   \<open>disL [] = \<bottom>\<^sub>T\<close> |
+  \<open>disL [\<phi>] = \<phi>\<close> |
   \<open>disL (\<phi> # \<phi>\<^sub>L) = \<phi> \<or>\<^sub>T disL \<phi>\<^sub>L\<close>
 
 inductive leads_to :: \<open>\<Phi>\<^sub>T\<^sub>M \<Rightarrow> \<Phi>\<^sub>T\<^sub>M \<Rightarrow> bool\<close> (infix \<open>\<mapsto>\<close> 55) where
@@ -292,7 +293,25 @@ next
   qed
 next
   case (disj \<phi>\<^sub>L \<psi>)
-  then show ?case by (induct \<phi>\<^sub>L) simp_all
+  then show ?case
+  proof (induct \<phi>\<^sub>L)
+    case (Cons a \<phi>\<^sub>L)
+    show ?case
+    proof
+      fix s
+      assume \<open>s \<in> Agent\<close>
+      show \<open>\<forall>i. s, i \<Turnstile>\<^sub>T (disL (a # \<phi>\<^sub>L) \<longrightarrow>\<^sub>T \<diamondop> \<psi>)\<close>
+      proof
+        fix i
+        from Cons have 
+          \<open>s, i \<Turnstile>\<^sub>T (disL \<phi>\<^sub>L \<longrightarrow>\<^sub>T \<diamondop> \<psi>)\<close> 
+          \<open>s, i \<Turnstile>\<^sub>T (a \<longrightarrow>\<^sub>T \<diamondop> \<psi>)\<close> 
+          using \<open>s \<in> Agent\<close> by simp_all
+        then show \<open>s, i \<Turnstile>\<^sub>T (disL (a # \<phi>\<^sub>L) \<longrightarrow>\<^sub>T \<diamondop> \<psi>)\<close> 
+          by (metis disL.simps(2,3) list.exhaust semantics\<^sub>T.simps(4,5))
+      qed
+    qed
+  qed simp
 qed
 
 end

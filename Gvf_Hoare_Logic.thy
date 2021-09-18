@@ -64,9 +64,9 @@ section \<open>Semantics\<close>
 \<comment> \<open>Semantics of Hoare triples is not evaluated in a specific state but for the agent.\<close>
 fun semantics\<^sub>H :: \<open>hoare_triple \<Rightarrow> bool\<close> (\<open>\<Turnstile>\<^sub>H\<close>) where
 \<comment> \<open>Basic action. Precondition holds and enabled => evaluate in successor state; else same state.\<close>
-  \<open>\<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} a \<^bold>{ \<psi> \<^bold>} = (\<forall>M. \<nabla>M \<longrightarrow>
-                          (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and>  (enabledb a) \<longrightarrow> the (\<M> a M) \<Turnstile>\<^sub>M \<psi>) \<and> 
-                          (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and> \<^bold>\<not>(enabledb a) \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>))\<close> | 
+  \<open>\<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} a \<^bold>{ \<psi> \<^bold>} = (\<forall>M. mst_reachable_basic M \<longrightarrow>
+                             (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and>  (enabledb a) \<longrightarrow> the (\<M> a M) \<Turnstile>\<^sub>M \<psi>) \<and> 
+                             (M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and> \<^bold>\<not>(enabledb a) \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>))\<close> | 
 \<comment> \<open>Conditional action. If \<upsilon> \<triangleright> do b is conditional action i in the trace and the precondition holds
     in state i, then the postcondition must hold in state i+1.\<close>
   \<open>\<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} (\<upsilon> \<triangleright> do b) \<^bold>{ \<psi> \<^bold>} = (\<forall> s \<in> Agent. \<forall>i. ((\<phi>\<^bold>[s i\<^bold>]\<^sub>M) \<and> (\<upsilon> \<triangleright> do b) = (act_nth s i) \<longrightarrow> (\<psi>\<^bold>[s (i+1)\<^bold>]\<^sub>M)))\<close>
@@ -90,8 +90,7 @@ proof -
     show \<open>\<forall>i. (\<phi>\<^bold>[s i\<^bold>]\<^sub>M \<and> ?b = act_nth s i \<longrightarrow> (\<phi>'\<^bold>[s (i+1)\<^bold>]\<^sub>M))\<close> 
     proof
       fix i
-      let ?M = \<open>st_nth s i\<close>
-      and ?M' = \<open>st_nth s (i+1)\<close>
+      let ?M = \<open>st_nth s i\<close> and ?M' = \<open>st_nth s (i+1)\<close>
       show \<open>\<phi>\<^bold>[s i\<^bold>]\<^sub>M \<and> ?b = act_nth s i \<longrightarrow> (\<phi>'\<^bold>[s (i+1)\<^bold>]\<^sub>M)\<close>
       proof
         assume \<open>\<phi>\<^bold>[s i\<^bold>]\<^sub>M \<and> ?b = act_nth s i\<close>
@@ -102,10 +101,10 @@ proof -
           from \<open>\<phi>\<^bold>[s i\<^bold>]\<^sub>M \<and> ?b = act_nth s i\<close> have \<open>?M \<Turnstile>\<^sub>M \<phi>\<close> by simp
           moreover from \<phi> have \<open>?M \<Turnstile>\<^sub>M \<psi>\<close> by simp
           ultimately have \<open>?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E)\<close> using transfer_semantics\<^sub>M by simp
-          moreover have \<open>\<nabla>?M \<longrightarrow> (?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E) \<^bold>\<and> (enabledb a) \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>')
+          moreover from mst_reachable_basic_trace have \<open>mst_reachable_basic ?M\<close> using \<open>s \<in> Agent\<close> by auto          
+          then have \<open>(?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E) \<^bold>\<and> (enabledb a) \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>')
                                 \<and> (?M \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E) \<^bold>\<and> \<^bold>\<not>(enabledb a) \<longrightarrow> ?M \<Turnstile>\<^sub>M \<phi>')\<close>
-            using assms(1) semantics\<^sub>H.simps(1) by blast  
-          moreover have \<open>\<nabla>?M\<close> using is_mst_trace \<open>s \<in> Agent\<close> .
+            using assms(1) semantics\<^sub>H.simps(1) by blast
           ultimately have *: \<open>(?M \<Turnstile>\<^sub>E (enabledb a) \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>')
                         \<and> (?M \<Turnstile>\<^sub>E \<^bold>\<not>(enabledb a) \<longrightarrow> ?M \<Turnstile>\<^sub>M \<phi>')\<close> by simp
           show ?thesis
@@ -113,25 +112,25 @@ proof -
             case enabled: True
             with * have \<open>the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>'\<close> by simp
             moreover from enabled have \<open>\<M> a ?M \<noteq> None\<close> by (cases a) simp_all
-            ultimately show \<open>?M' \<Turnstile>\<^sub>M \<phi>'\<close> using \<M>_suc_state \<open>s \<in> Agent\<close> \<open>?b = act_nth s i\<close> by simp
+            ultimately show \<open>?M' \<Turnstile>\<^sub>M \<phi>'\<close> using \<M>_suc_state \<open>s \<in> Agent\<close> \<open>?b = act_nth s i\<close> 
+              using snd_act_nth by fastforce
           next
             case not_enabled: False
             with * have \<open>?M \<Turnstile>\<^sub>M \<phi>'\<close> by simp
             moreover have \<open>\<M> a ?M = None\<close>
             proof (cases a)
               case (basic n)
-              moreover from \<open>is_trace s\<close> have \<open>act_nth s i \<in> \<Pi>\<close> using trace_in_\<Pi> by simp
-              ultimately have \<open>(\<psi>, (basic n)) \<in> \<Pi>\<close> using \<open>?b = act_nth s i\<close> by simp
-              then have \<open>n \<in> Cap\<close> unfolding Cap_def by auto
-              moreover have \<open>\<not>(n \<in> Cap \<and> \<M> a ?M \<noteq> None)\<close> using basic not_enabled by fastforce
-              ultimately show ?thesis by blast
+              with not_enabled have \<open>\<not> ((enabledb (basic n))\<^bold>[s i\<^bold>]\<^sub>E)\<close> by simp
+              with semantics\<^sub>E'.simps(3) have \<open>\<not> \<M> (basic n) ?M \<noteq> None\<close> using \<M>_some_Cap by fastforce
+              then have \<open>\<M> (basic n) ?M = None\<close> by blast
+              with basic show ?thesis by simp
             next
               case (adopt \<Phi>)
-              with not_enabled have \<open>\<not> \<M> (adopt \<Phi>) ?M \<noteq> None\<close> using \<open>?b = act_nth s i\<close> by simp
+              with not_enabled have \<open>\<not> \<M> (adopt \<Phi>) ?M \<noteq> None\<close> using \<open>?b = act_nth s i\<close> adopt_Cap by simp
               with adopt show ?thesis by blast 
             next
               case (drop \<Phi>)
-              with not_enabled have \<open>\<not> \<M> (drop \<Phi>) ?M \<noteq> None\<close> using \<open>?b = act_nth s i\<close> by simp
+              with not_enabled have \<open>\<not> \<M> (drop \<Phi>) ?M \<noteq> None\<close> using \<open>?b = act_nth s i\<close> drop_Cap by simp
               with drop show ?thesis by blast
             qed
             then have \<open>\<not>(?M \<rightarrow>?b ?M')\<close> unfolding transition_def by simp
@@ -150,6 +149,42 @@ proof -
     qed
   qed
   then show ?thesis by simp
+qed
+
+lemma mst_basic_trace_ht_invariant:
+  assumes \<open>\<forall>a\<in>Cap. \<Turnstile>\<^sub>H \<^bold>{ \<phi> \<^bold>} a \<^bold>{ \<phi> \<^bold>}\<close> 
+      and \<open>M\<^sub>0 \<Turnstile>\<^sub>M \<phi>\<close>
+    shows \<open>\<^bold>\<Turnstile>\<^sub>M \<phi>\<close>
+proof
+  fix M
+  show \<open>mst_reachable_basic M \<longrightarrow> M \<Turnstile>\<^sub>M \<phi>\<close>
+  proof 
+    assume \<open>mst_reachable_basic M\<close>
+    then obtain S where *: \<open>mst_basic_trace S M\<^sub>0 = M\<close> unfolding mst_reachable_basic_def by auto
+    moreover have \<open>mst_basic_trace S M\<^sub>0 \<Turnstile>\<^sub>M \<phi>\<close>
+    proof (induct S)
+      case Nil
+      with assms(2) show ?case by simp
+    next
+      case (Cons a S')
+      let ?M = \<open>mst_basic_trace S' M\<^sub>0\<close>
+      show ?case
+      proof (cases \<open>\<M> a ?M\<close>)
+        case None
+        with Cons show ?thesis by simp
+      next
+        case Some
+        with \<M>_some_Cap have \<open>a \<in> Cap\<close> by blast
+        with assms(1) have \<open>?M \<Turnstile>\<^sub>E (\<phi>\<^sup>E) \<^bold>\<and> (enabledb a) \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>\<close> 
+          using mst_reachable_basic_def semantics\<^sub>H.simps(1) by blast
+        moreover from semantics\<^sub>E'.simps(3) have \<open>?M \<Turnstile>\<^sub>E enabledb a\<close> using \<open>a \<in> Cap\<close> Some * by simp
+        ultimately have \<open>?M \<Turnstile>\<^sub>M \<phi> \<longrightarrow> the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>\<close> using transfer_semantics\<^sub>M by simp
+        with Cons have \<open>the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>\<close> by simp
+        with Some show ?thesis by simp
+      qed
+    qed
+    ultimately show \<open>M \<Turnstile>\<^sub>M \<phi>\<close> by simp
+  qed
 qed
 
 end
