@@ -81,7 +81,6 @@ proof (cases M)
   with Pair show ?thesis by simp
 qed
 
-\<comment> \<open>XXX: Poorly placed and commented.\<close>
 lemma new_base_is_mst: \<open>\<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<Longrightarrow> \<nabla>(\<Sigma>, \<Gamma>) \<Longrightarrow> \<nabla>(\<Sigma>', [\<psi><-\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close>
   unfolding is_mental_state_def by simp
 
