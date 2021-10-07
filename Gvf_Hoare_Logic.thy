@@ -113,7 +113,7 @@ proof -
             with * have \<open>the (\<M> a ?M) \<Turnstile>\<^sub>M \<phi>'\<close> by simp
             moreover from enabled have \<open>\<M> a ?M \<noteq> None\<close> by (cases a) simp_all
             ultimately show \<open>?M' \<Turnstile>\<^sub>M \<phi>'\<close> using \<M>_suc_state \<open>s \<in> Agent\<close> \<open>?b = act_nth s i\<close> 
-              using snd_act_nth by fastforce
+              using snd_act_nth using \<phi> fst_act_nth by auto
           next
             case not_enabled: False
             with * have \<open>?M \<Turnstile>\<^sub>M \<phi>'\<close> by simp

@@ -243,8 +243,8 @@ lemma snd_act_nth: \<open>(\<psi>, a) = act_nth s i \<Longrightarrow> snd (act_n
 \<comment> \<open>The definition of a trace (not every element of the datatype trace qualifies).\<close>
 definition is_trace :: \<open>trace \<Rightarrow> bool\<close> where
   \<open>is_trace s \<equiv> 
-    \<forall>i. ((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
-        (act_nth s i) \<in> \<Pi> \<and> \<M> (snd (act_nth s i)) (st_nth s i) = None \<and> (st_nth s i) = (st_nth s (i+1))\<close>
+    \<forall>i. (act_nth s i) \<in> \<Pi> \<and> (((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
+        \<not>(\<exists>M. ((st_nth s i) \<rightarrow>(act_nth s i) M)) \<and> (st_nth s i) = (st_nth s (i+1)))\<close>
 \<comment> \<open>For all i there is a transition between M_i and M_(i+1) due to an action, or the action
     is not enabled and the successor state (M_(i+1)) is equal to the current (M_i).\<close>
 
@@ -289,15 +289,17 @@ lemma descendant_M0: \<open>s \<in> Agent \<Longrightarrow> descendant M\<^sub>0
 lemma \<M>_suc_state:
   assumes \<open>s \<in> Agent\<close>
       and \<open>\<M> (snd (act_nth s i)) (st_nth s i) \<noteq> None\<close>
+      and \<open>st_nth s i \<Turnstile>\<^sub>M fst (act_nth s i)\<close>
     shows \<open>st_nth s (i+1) = the (\<M> (snd (act_nth s i)) (st_nth s i))\<close>
       (is \<open>?M = the (\<M> ?a ?M')\<close>)
 proof -
   from assms(1) have \<open>is_trace s\<close> unfolding Agent_def by simp
-  with assms(2) have \<open>(((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
-        (act_nth s i) \<in> \<Pi> \<and> \<M> (snd (act_nth s i)) (st_nth s i) = None \<and> (st_nth s i) = (st_nth s (i+1)))\<close>
+  then have 
+    \<open>(act_nth s i) \<in> \<Pi> \<and> (((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
+        \<not>(\<exists>M. ((st_nth s i) \<rightarrow>(act_nth s i) M)) \<and> (st_nth s i) = (st_nth s (i+1)))\<close> 
     unfolding is_trace_def by simp
   moreover from trace_in_\<Pi> have \<open>act_nth s i \<in> \<Pi>\<close> using \<open>is_trace s\<close> assms(2) by simp
-  ultimately show ?thesis using assms(2) unfolding transition_def by simp
+  ultimately show ?thesis using assms(2,3) unfolding transition_def by auto
 qed
 
 \<comment> \<open>All states in trace comply to mental state definition.\<close>
@@ -310,20 +312,23 @@ proof (induct n)
 next
   case (Suc n)
   let ?M = \<open>st_nth s n\<close> and ?M' = \<open>st_nth s (Suc n)\<close> and ?b = \<open>act_nth s n\<close>
-  have trace_n: \<open>(?M \<rightarrow>?b ?M') \<or> \<M> (snd ?b) ?M = None \<and> ?M = ?M'\<close>
+  have trace_n: \<open>(?M \<rightarrow>?b ?M') \<or> ?M = ?M'\<close>
   proof -
     from assms(1) have \<open>is_trace s\<close> unfolding Agent_def by simp
     then show ?thesis unfolding is_trace_def by auto
   qed
   then show ?case 
-  proof (cases \<open>\<M> (snd ?b) ?M = None\<close>)
+  proof (cases \<open>?M \<rightarrow>?b ?M'\<close>)
     case True
-    with Suc trace_n show ?thesis unfolding transition_def by auto
-  next
-    case False
+    then have *: \<open>st_nth s n \<Turnstile>\<^sub>M fst (act_nth s n) \<and> \<M> (snd (act_nth s n)) (st_nth s n) \<noteq> None\<close> 
+      unfolding transition_def by simp
     with \<M>_preserves_mst have \<open>\<nabla> (the (\<M> (snd ?b) ?M))\<close> 
       using Suc by (cases ?M) simp
-    with \<M>_suc_state trace_n show ?thesis using assms False unfolding Agent_def by simp
+    with \<M>_suc_state show ?thesis using assms * unfolding Agent_def by simp
+  next
+    case False
+    then have \<open>?M = ?M'\<close> using trace_n by blast
+    with Suc show ?thesis by simp
   qed
 qed
 
@@ -383,20 +388,18 @@ next
   then obtain S where *: \<open>mst_basic_trace S M\<^sub>0 = st_nth s i\<close> unfolding mst_reachable_basic_def by auto
   from assms have \<open>is_trace s\<close> unfolding Agent_def by simp
   then have 
-    \<open>((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
-      \<M> (snd (act_nth s i)) (st_nth s i) = None \<and> (st_nth s i) = (st_nth s (i+1))\<close> 
+    \<open>(((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
+        \<not>(\<exists>M. ((st_nth s i) \<rightarrow>(act_nth s i) M)) \<and> (st_nth s i) = (st_nth s (i+1)))\<close> 
     unfolding is_trace_def by auto
-  then have 
-    \<open>st_nth s (i+1) = st_nth s i \<or> \<M> (snd (act_nth s i)) (st_nth s i) \<noteq> None\<close> unfolding transition_def by auto
   then show ?case
   proof
-    assume \<open>st_nth s (i + 1) = st_nth s i\<close>
-    with * show ?thesis unfolding mst_reachable_basic_def by auto
-  next
-    assume \<open>\<M> (snd (act_nth s i)) (st_nth s i) \<noteq> None\<close>
+    assume \<open>(st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))\<close>
     moreover from this \<M>_suc_state have \<open>(st_nth s (i+1)) = the (\<M> (snd (act_nth s i)) (st_nth s i))\<close> 
-      using \<open>s \<in> Agent\<close> by simp
-    ultimately show ?thesis using Suc mst_reachable_basic_\<M> by simp
+      using \<open>s \<in> Agent\<close> unfolding transition_def by (metis option.distinct(1))
+    ultimately show ?thesis using Suc mst_reachable_basic_\<M> unfolding transition_def by fastforce
+  next
+    assume \<open>\<not>(\<exists>M. ((st_nth s i) \<rightarrow>(act_nth s i) M)) \<and> (st_nth s i) = (st_nth s (i+1))\<close>
+    with * show ?thesis unfolding mst_reachable_basic_def by auto
   qed
 qed
 

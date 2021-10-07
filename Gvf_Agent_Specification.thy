@@ -625,17 +625,34 @@ next
           with pre have \<open>st_nth s i \<Turnstile>\<^sub>E ((\<phi> \<^bold>\<and> \<psi>)\<^sup>E)\<close> using transfer_semantics\<^sub>M by simp
           moreover from True have \<open>\<M> a (st_nth s i) \<noteq> None\<close> unfolding transition_def by simp
           moreover from this have \<open>st_nth s i \<Turnstile>\<^sub>E enabledb a\<close> using \<M>_some_Cap by simp
-          ultimately show ?thesis using \<M>_suc_state \<open>s \<in> Agent\<close> bact a(2) using snd_act_nth by auto
+          ultimately show ?thesis using \<M>_suc_state \<open>s \<in> Agent\<close> bact a(2) 
+            using snd_act_nth fst_act_nth transfer_semantics\<^sub>M by auto
         next
-          case False
+          case f: False
           moreover from \<open>s \<in> Agent\<close> have \<open>is_trace s\<close> unfolding Agent_def by simp
           ultimately have \<open>st_nth s i = st_nth s (i+1)\<close> using not_transition_eq bact by simp
-          moreover from \<open>is_trace s\<close> have 
-            \<open>((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
-              (act_nth s i) \<in> \<Pi> \<and> \<M> (snd (act_nth s i)) (st_nth s i) = None \<and> (st_nth s i) = (st_nth s (i+1))\<close> 
-            unfolding is_trace_def by simp
-          with False bact have \<open>\<M> a (st_nth s i) = None\<close> using snd_act_nth by fastforce
-          ultimately show ?thesis using a pre transfer_semantics\<^sub>M by auto
+          then show ?thesis
+          proof (cases \<open>st_nth s i \<Turnstile>\<^sub>M \<psi>\<close>)
+            case True
+            then have \<open>\<not> ((enabledb a)\<^bold>[s i\<^bold>]\<^sub>E)\<close>
+            proof -
+              from \<open>is_trace s\<close> have 
+                \<open>((st_nth s i) \<rightarrow>(act_nth s i) (st_nth s (i+1))) \<or> 
+                \<not>(\<exists>M. ((st_nth s i) \<rightarrow>(act_nth s i) M)) \<and> (st_nth s i) = (st_nth s (i+1))\<close> 
+                unfolding is_trace_def by simp
+              with f True bact have \<open>\<not>(\<exists>M. ((st_nth s i) \<rightarrow>(\<psi> \<triangleright> do a) M))\<close> by auto
+              moreover have \<open>(\<psi> \<triangleright> do a) \<in> \<Pi>\<close> using \<open>is_trace s\<close> bact trace_in_\<Pi> by force
+              ultimately have \<open>\<not> (st_nth s i) \<Turnstile>\<^sub>M \<psi> \<or> \<M> a (st_nth s i) = None\<close> 
+                unfolding transition_def by fastforce
+              with True show \<open>\<not> ((enabledb a)\<^bold>[s i\<^bold>]\<^sub>E)\<close> by simp
+            qed
+            then have \<open>st_nth s i \<Turnstile>\<^sub>M \<phi>'\<close> using a pre transfer_semantics\<^sub>M by auto
+            with \<open>st_nth s i = st_nth s (i+1)\<close> show ?thesis by simp
+          next
+            case False
+            with bact have \<open>\<phi>'\<^bold>[s i\<^bold>]\<^sub>M\<close> using a(1) pre by auto
+            with \<open>st_nth s i = st_nth s (i+1)\<close> show ?thesis by simp
+          qed
         qed
       qed
     qed
