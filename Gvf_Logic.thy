@@ -122,7 +122,6 @@ proof -
   then show \<open>gen_sc R \<Gamma> (p # \<Delta>)\<close> by simp
 qed 
 
-\<comment> \<open>XXX\<close>
 lemma gen_sc_None: \<open>gen_sc R \<Gamma> \<Delta> \<Longrightarrow> R = None \<Longrightarrow> gen_sc R' \<Gamma> \<Delta>\<close>
 proof (induct rule: gen_sc.induct)
   case (Axiom R \<Gamma> p \<Delta>)

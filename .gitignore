@@ -2,3 +2,4 @@
 *.thy~
 #Gvf_Temporal_Logic.thy#
 *.thy#
+isabelle-goal.zip

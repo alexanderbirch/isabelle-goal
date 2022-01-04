@@ -1,4 +1,4 @@
-theory Gvf_Example_BW4T imports Gvf_Temporal_Logic Gvf_Solver begin
+theory Gvf_Example_BW4T imports Gvf_Temporal_Logic begin
 
 section \<open>Example BW4T single agent specification.\<close>
 
@@ -125,20 +125,20 @@ proof -
             then have \<open>\<exists>f. \<forall>p \<in> set ?\<Sigma>. semantics\<^sub>P f p\<close> by blast
             with not_contradict show \<open>\<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
           qed
-          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
+          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
           proof -
-            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>3 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>3\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>4 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>4\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close>
+            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>3 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>3\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>4 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>4\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close>
             proof -
               have \<open>\<exists>f. \<not> f ''in_r1'' \<and> f ''in_dropzone'' \<and> \<not> f ''atBlock_b1'' \<and> f ''holding_b1'' \<and> \<not> f ''collect''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
               then show ?thesis by simp
             qed
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close>
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close>
             proof -
               have \<open>\<exists>f. f ''in_dropzone'' \<and> \<not> f ''in_r1'' \<and> \<not> f ''atBlock_b1'' \<and> f ''holding_b1''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
@@ -163,25 +163,25 @@ proof -
             then have \<open>\<exists>f. \<forall>p \<in> set ?\<Sigma>. semantics\<^sub>P f p\<close> by blast
             with not_contradict show \<open>\<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
           qed
-          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
+          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
           proof -
-            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>3 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>3\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>4 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>4\<close> 
+            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>3 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>3\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>4 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>4\<close> 
             proof -
               have \<open>\<exists>f. f ''in_r1'' \<and> \<not> f ''in_dropzone'' \<and> \<not> f ''atBlock_b1'' \<and> \<not> f ''holding_b1''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
               then show ?thesis by simp
             qed
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close>
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close>
             proof -
               have \<open>\<exists>f. f ''in_r1'' \<and> \<not> f ''in_dropzone'' \<and> \<not> f ''atBlock_b1'' \<and> \<not> f ''holding_b1'' \<and> \<not> f ''collect''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
               then show ?thesis by simp
             qed
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close>
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close>
             proof -
               have \<open>\<exists>f. f ''in_r1'' \<and> \<not> f ''in_dropzone'' \<and> \<not> f ''atBlock_b1'' \<and> \<not> f ''holding_b1''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
@@ -206,25 +206,25 @@ proof -
             then have \<open>\<exists>f. \<forall>p \<in> set ?\<Sigma>. semantics\<^sub>P f p\<close> by blast
             with not_contradict show \<open>\<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
           qed
-          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
+          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
           proof -
-            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow>(?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>3 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>3\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>4 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>4\<close>
+            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow>(?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>3 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>3\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>4 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>4\<close>
             proof -
               have \<open>\<exists>f. f ''atBlock_b1'' \<and> f ''in_r1'' \<and> \<not> f ''in_dropzone'' \<and> \<not> f ''holding_b1''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
               then show ?thesis by simp
             qed
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close>
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close>
             proof -
               have \<open>\<exists>f. f ''in_r1'' \<and> \<not> f ''in_dropzone'' \<and> f ''atBlock_b1'' \<and> \<not> f ''holding_b1'' \<and> \<not> f ''collect''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
               then show ?thesis by simp
             qed
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>6 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>6\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>6 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>6\<close> by simp
             ultimately show ?thesis by auto
           qed
         qed
@@ -244,19 +244,19 @@ proof -
             then have \<open>\<exists>f. \<forall>p \<in> set ?\<Sigma>. semantics\<^sub>P f p\<close> by blast
             with not_contradict show \<open>\<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
           qed
-          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
+          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
           proof -
-            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close> 
+            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>5 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>5\<close> 
             proof -
               have \<open>\<exists>f. f ''in_r1'' \<and> \<not> f ''in_dropzone'' \<and> f ''holding_b1'' \<and> \<not> f ''collect''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)
               then show ?thesis by simp
             qed
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>6 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>6\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>6 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>6\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close> by simp
             ultimately show ?thesis by auto
           qed
         qed
@@ -276,12 +276,12 @@ proof -
             then have \<open>\<exists>f. \<forall>p \<in> set ?\<Sigma>. semantics\<^sub>P f p\<close> by blast
             with not_contradict show \<open>\<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close> by auto
           qed
-          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
+          show \<open>\<forall>ht\<in>set (snd (snd ?x)). M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close>
           proof -
-            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
-            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi><-snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close>
+            from * have \<open>M \<Turnstile>\<^sub>M pre ((snd (snd ?x))!0) \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ((snd (snd ?x))!0)\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>1 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>1\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>2 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>2\<close> by simp
+            moreover from * have \<open>M \<Turnstile>\<^sub>M pre ?ht_L\<^sub>7 \<longrightarrow> (?\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> ?\<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ?ht_L\<^sub>7\<close>
             proof -
               have \<open>\<exists>f. \<not> f ''in_r1'' \<and> f ''in_dropzone'' \<and> f ''collect'' \<and> \<not> f ''atBlock_b1''\<close>
                 by (rule exI[where x=\<open>f_construct ?\<Sigma>\<close>], simp)

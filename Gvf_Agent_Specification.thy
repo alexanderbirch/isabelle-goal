@@ -23,7 +23,7 @@ section \<open>Satisfiability of specification\<close>
 definition satisfiable_base :: \<open>mental_state \<Rightarrow> hoare_triple list \<Rightarrow> \<Phi>\<^sub>L list \<Rightarrow> bool\<close> where
   \<open>satisfiable_base M hts \<Sigma> \<equiv>
     (\<not> fst M \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>) \<and> 
-    (\<forall>ht \<in> set hts. M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, [\<psi><-snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>] ) \<Turnstile>\<^sub>M post ht)\<close>
+    (\<forall>ht \<in> set hts. M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>] ) \<Turnstile>\<^sub>M post ht)\<close>
 
 fun satisfiable_l :: \<open>mental_state \<Rightarrow> ht_spec_elem \<Rightarrow> bool\<close> where
  \<open>satisfiable_l M (a, \<Phi>, hts) = (M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<exists> \<Sigma>. satisfiable_base M hts \<Sigma>))\<close>
@@ -148,8 +148,8 @@ proof
                 proof (cases M)
                   case (Pair \<Sigma> \<Gamma>)
                   then have \<open>\<M>* ?\<T> (basic n) M = \<M>* ?\<T> (basic n) (\<Sigma>, \<Gamma>)\<close> by simp
-                  also have \<open>\<M>* ?\<T> (basic n) (\<Sigma>, \<Gamma>) = (case ?\<T> n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', [\<psi><-\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>]) | _ \<Rightarrow> None)\<close> by simp
-                  also have \<open>\<dots> = (case ?\<T>' n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', [\<psi><-\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>]) | _ \<Rightarrow> None)\<close> using \<open>?\<T> n = ?\<T>' n\<close> by simp
+                  also have \<open>\<M>* ?\<T> (basic n) (\<Sigma>, \<Gamma>) = (case ?\<T> n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', [\<psi>\<leftarrow>\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>]) | _ \<Rightarrow> None)\<close> by simp
+                  also have \<open>\<dots> = (case ?\<T>' n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', [\<psi>\<leftarrow>\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>]) | _ \<Rightarrow> None)\<close> using \<open>?\<T> n = ?\<T>' n\<close> by simp
                   also have \<open>\<dots> = \<M>* ?\<T>' (basic n) (\<Sigma>, \<Gamma>)\<close> by simp
                   finally show \<open>\<M>* ?\<T> (basic n) M = \<M>* ?\<T>' (basic n) M\<close> using Pair by simp
                 qed
@@ -224,35 +224,35 @@ proof -
                     qed
                     with ex have \<open>\<not> (fst M) \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> ?\<T> n M \<noteq> None \<longrightarrow> \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>  
                       using someI2[where ?P=\<open>satisfiable_base M hts\<close>] by blast
-                    moreover have \<open>\<forall>\<Sigma>. satisfiable_base M hts \<Sigma> \<longrightarrow> (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<Sigma>, [\<psi><-snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>)\<close>
+                    moreover have \<open>\<forall>\<Sigma>. satisfiable_base M hts \<Sigma> \<longrightarrow> (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>)\<close>
                     proof
                       fix \<Sigma>
-                      show \<open>satisfiable_base M hts \<Sigma> \<longrightarrow> (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<Sigma>, [\<psi><-snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>)\<close> 
+                      show \<open>satisfiable_base M hts \<Sigma> \<longrightarrow> (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>)\<close> 
                       proof
                         assume \<open>satisfiable_base M hts \<Sigma>\<close>
-                        with \<open>ht \<in> set hts\<close> have \<open>M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, [\<psi><-snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close> unfolding satisfiable_base_def by simp
+                        with \<open>ht \<in> set hts\<close> have \<open>M \<Turnstile>\<^sub>M pre ht \<longrightarrow> (\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M post ht\<close> unfolding satisfiable_base_def by simp
                         moreover from \<open>is_htb_basic ht\<close> have \<open>pre ht = \<phi>\<close> 
                           using fields unpack_sel(1) by fastforce
                         moreover from \<open>is_htb_basic ht\<close> have \<open>post ht = \<psi>\<close> 
                           using fields unpack_sel(2) by fastforce
-                        ultimately have \<open>M \<Turnstile>\<^sub>M \<phi> \<longrightarrow> (\<Sigma>, [\<psi><-snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>\<close> by simp
-                        then show \<open>M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<Sigma>, [\<psi><-snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>\<close> by simp
+                        ultimately have \<open>M \<Turnstile>\<^sub>M \<phi> \<longrightarrow> (\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>\<close> by simp
+                        then show \<open>M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> (\<Sigma>, [\<psi>\<leftarrow>snd M. \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>\<close> by simp
                       qed
                     qed
-                    with ex have \<open>(M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> ((SOME \<Sigma>. satisfiable_base M hts \<Sigma>), [\<psi><-snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>)\<close>
+                    with ex have \<open>(M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> ((SOME \<Sigma>. satisfiable_base M hts \<Sigma>), [\<psi>\<leftarrow>snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>)\<close>
                       using someI2[where ?P=\<open>satisfiable_base M hts\<close>] by blast
                     ultimately have 
                       \<open>(M \<Turnstile>\<^sub>M \<Phi> \<longleftrightarrow> Some (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<noteq> None) \<and>
                         (\<not> (fst M) \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<longrightarrow> \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>) \<and>
-                        (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> ((SOME \<Sigma>. satisfiable_base M hts \<Sigma>),  [\<psi><-snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>) \<and> 
+                        (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<Phi> \<longrightarrow> ((SOME \<Sigma>. satisfiable_base M hts \<Sigma>),  [\<psi>\<leftarrow>snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>) \<and> 
                         (M \<Turnstile>\<^sub>M \<phi> \<and> M \<Turnstile>\<^sub>M \<^bold>\<not> \<Phi> \<longrightarrow> M \<Turnstile>\<^sub>M \<psi>)\<close> 
                       using True by auto
-                    moreover have \<open>((SOME \<Sigma>. satisfiable_base M hts \<Sigma>),  [\<psi><-snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi> \<longrightarrow> the (\<M>* ?\<T> (basic n) M) \<Turnstile>\<^sub>M \<psi>\<close> 
+                    moreover have \<open>((SOME \<Sigma>. satisfiable_base M hts \<Sigma>),  [\<psi>\<leftarrow>snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi> \<longrightarrow> the (\<M>* ?\<T> (basic n) M) \<Turnstile>\<^sub>M \<psi>\<close> 
                     proof (cases M)
                       case (Pair \<Sigma> \<Gamma>)
                       show ?thesis 
                       proof
-                        assume entails: \<open>((SOME \<Sigma>. satisfiable_base M hts \<Sigma>),  [\<psi><-snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>\<close>
+                        assume entails: \<open>((SOME \<Sigma>. satisfiable_base M hts \<Sigma>),  [\<psi>\<leftarrow>snd M. \<not> (SOME \<Sigma>. satisfiable_base M hts \<Sigma>) \<^bold>\<Turnstile>\<^sub>P \<psi>]) \<Turnstile>\<^sub>M \<psi>\<close>
                         with nM Pair show \<open>the (\<M>* ?\<T> (basic n) M) \<Turnstile>\<^sub>M \<psi>\<close> by auto
                       qed
                     qed
@@ -480,7 +480,7 @@ next
             case (basic n)
             with notNone have \<open>\<M> (basic n) (\<Sigma>, \<Gamma>) \<noteq> None\<close> by simp
             then obtain \<Sigma>' where \<Sigma>': \<open>\<T> n (\<Sigma>, \<Gamma>) = Some \<Sigma>'\<close> by fastforce
-            then have mst_unfold: \<open>\<M> (basic n) (\<Sigma>, \<Gamma>) = Some (\<Sigma>', [\<psi><-\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close>
+            then have mst_unfold: \<open>\<M> (basic n) (\<Sigma>, \<Gamma>) = Some (\<Sigma>', [\<psi>\<leftarrow>\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close>
                               (is \<open>\<M> (basic n) (\<Sigma>, \<Gamma>) = Some (\<Sigma>', ?\<Gamma>')\<close>) 
               by simp
             then show ?thesis 
@@ -590,7 +590,7 @@ next
             (\<exists>\<gamma>\<in>set (snd M). \<Turnstile>\<^sub>P (\<gamma> \<^bold>\<longrightarrow> \<Phi>))\<close>  
         by (cases M) auto
       moreover from pre obtain \<gamma> where gamma: \<open>\<gamma> \<in> set (snd M) \<and> \<Turnstile>\<^sub>P (\<gamma> \<^bold>\<longrightarrow> \<Phi>)\<close> by auto
-      moreover have aM: \<open>\<M> ?a M = Some (fst M, [\<gamma><-snd M. \<not> [\<gamma>] \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close> (is \<open>\<dots> = Some ?M'\<close>) 
+      moreover have aM: \<open>\<M> ?a M = Some (fst M, [\<gamma>\<leftarrow>snd M. \<not> [\<gamma>] \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close> (is \<open>\<dots> = Some ?M'\<close>) 
         by (cases M) simp
       ultimately have \<open>\<not> fst ?M' \<^bold>\<Turnstile>\<^sub>P \<Phi>\<close> by simp
       moreover from pre gamma have \<open>\<not> [\<gamma>] \<^bold>\<Turnstile>\<^sub>P (\<Phi> \<^bold>\<and> \<psi>)\<close> by auto

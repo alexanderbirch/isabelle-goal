@@ -68,9 +68,9 @@ type_synonym bel_upd_t = \<open>Bcap \<Rightarrow> mental_state \<Rightarrow> \<
 \<comment> \<open>The mental state transformer gives the agent's mental state update capabilities.\<close>
 fun mental_state_transformer :: \<open>bel_upd_t \<Rightarrow> cap \<Rightarrow> mental_state \<Rightarrow> mental_state option\<close> (\<open>\<M>*\<close>) where
   \<comment> \<open>If \<T> a \<Sigma> is defined, update the goal base accordingly.\<close>
-  \<open>\<M>* \<T> (basic n) (\<Sigma>, \<Gamma>) = (case \<T> n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', [\<psi><-\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>]) | _ \<Rightarrow> None)\<close> |
+  \<open>\<M>* \<T> (basic n) (\<Sigma>, \<Gamma>) = (case \<T> n (\<Sigma>, \<Gamma>) of Some \<Sigma>' \<Rightarrow> Some (\<Sigma>', [\<psi>\<leftarrow>\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>]) | _ \<Rightarrow> None)\<close> |
   \<comment> \<open>Remove the goals that entail \<Phi>.\<close>
-  \<open>\<M>* \<T> (drop \<Phi>) (\<Sigma>, \<Gamma>) = Some (\<Sigma>, [\<psi><-\<Gamma>. \<not> [\<psi>] \<^bold>\<Turnstile>\<^sub>P \<Phi>])\<close> |
+  \<open>\<M>* \<T> (drop \<Phi>) (\<Sigma>, \<Gamma>) = Some (\<Sigma>, [\<psi>\<leftarrow>\<Gamma>. \<not> [\<psi>] \<^bold>\<Turnstile>\<^sub>P \<Phi>])\<close> |
   \<comment> \<open>Add the goal \<Phi> if it is consistent and not entailed by the belief base.\<close>
   \<open>\<M>* \<T> (adopt \<Phi>) (\<Sigma>, \<Gamma>) = (if \<not> \<Turnstile>\<^sub>P (\<^bold>\<not> \<Phi>) \<and> \<not> \<Sigma> \<^bold>\<Turnstile>\<^sub>P \<Phi> then Some (\<Sigma>, List.insert \<Phi> \<Gamma>) else None)\<close>
 
@@ -81,7 +81,7 @@ proof (cases M)
   with Pair show ?thesis by simp
 qed
 
-lemma new_base_is_mst: \<open>\<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<Longrightarrow> \<nabla>(\<Sigma>, \<Gamma>) \<Longrightarrow> \<nabla>(\<Sigma>', [\<psi><-\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close>
+lemma new_base_is_mst: \<open>\<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom> \<Longrightarrow> \<nabla>(\<Sigma>, \<Gamma>) \<Longrightarrow> \<nabla>(\<Sigma>', [\<psi>\<leftarrow>\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close>
   unfolding is_mental_state_def by simp
 
 \<comment> \<open>We fix to a single agent and assume a given belief update function, 
@@ -164,7 +164,7 @@ lemma \<M>_preserves_mst: \<open>\<nabla> (\<Sigma>, \<Gamma>) \<Longrightarrow>
 proof (induct c)
   case basic: (basic a)
   then obtain \<Sigma>' where \<Sigma>': \<open>\<T> a (\<Sigma>, \<Gamma>) = Some \<Sigma>'\<close> by fastforce
-  have \<open>\<nabla> (\<Sigma>', [\<psi><-\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close> (is \<open>\<nabla> (\<Sigma>', ?\<Gamma>')\<close>)
+  have \<open>\<nabla> (\<Sigma>', [\<psi>\<leftarrow>\<Gamma>. \<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<psi>])\<close> (is \<open>\<nabla> (\<Sigma>', ?\<Gamma>')\<close>)
   proof -
     have \<open>\<not> \<Sigma>' \<^bold>\<Turnstile>\<^sub>P \<^bold>\<bottom>\<close>
     proof -
@@ -185,7 +185,7 @@ next
   with mst_goal show ?case by simp
 next
   case (drop \<Phi>)
-  then have \<open>\<nabla> (\<Sigma>, [\<psi><-\<Gamma>. \<not> [\<psi>] \<^bold>\<Turnstile>\<^sub>P \<Phi>])\<close> unfolding is_mental_state_def by simp
+  then have \<open>\<nabla> (\<Sigma>, [\<psi>\<leftarrow>\<Gamma>. \<not> [\<psi>] \<^bold>\<Turnstile>\<^sub>P \<Phi>])\<close> unfolding is_mental_state_def by simp
   then show ?case by simp
 qed
 
@@ -271,19 +271,6 @@ definition fair_trace :: \<open>trace \<Rightarrow> bool\<close> where
 \<comment> \<open>An agent is defined as the set of fair traces starting from the initial state.\<close>
 definition Agent :: \<open>trace set\<close> where
   \<open>Agent \<equiv> {s . is_trace s \<and> fair_trace s \<and> st_nth s 0 = M\<^sub>0}\<close>
-
-\<comment> \<open>Set of all possible mental states.\<close>
-(*definition Agent_all_mst :: \<open>mental_state set\<close> where
-  \<open>Agent_all_mst \<equiv> \<Union> (range ` st_nth ` Agent)\<close> *)
-
-(*definition descendant :: \<open>mental_state \<Rightarrow> mental_state \<Rightarrow> bool\<close> where
-  \<open>descendant M M' \<equiv> \<exists>s \<in> Agent. \<exists>i. st_nth s i = M \<and> (\<exists>j \<ge> i. st_nth s j = M')\<close>
-
-lemma descendant_M0: \<open>s \<in> Agent \<Longrightarrow> descendant M\<^sub>0 (st_nth s i)\<close> 
-  unfolding descendant_def Agent_def by auto*)
-
-(* lemma st_nth_Agent_all_mst: \<open>s \<in> Agent \<Longrightarrow> st_nth s i \<in> Agent_all_mst\<close>
-  unfolding Agent_all_mst_def by auto *)
 
 \<comment> \<open>If the mental state transformer is defined for a state in the trace, then it gives the successor state.\<close>
 lemma \<M>_suc_state:
