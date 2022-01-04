@@ -2,7 +2,7 @@
   Goal verification framework
     - Temporal Logic
 *)
-\<comment> \<open>This theory ...\<close>
+\<comment> \<open>This theory specifies a temporal logic for proving properties of agents.\<close>
 
 theory Gvf_Temporal_Logic imports Gvf_Agent_Specification begin
 
